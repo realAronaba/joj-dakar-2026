@@ -1,0 +1,125 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --green:     #00853F;
+    --yellow:    #FDEF42;
+    --red:       #E31B23;
+    --terracotta:#C2410C;
+    --dark:      #0f1f0f;
+    --light:     #f9f9f5;
+    --text:      #1a1a1a;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* ── Header ── */
+.site-header {
+    background: var(--dark);
+    padding: 1rem 0;
+    border-bottom: 4px solid var(--green);
+}
+
+.site-header .container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-logo {
+    font-size: 1.75rem;
+}
+
+.header-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--yellow);
+    letter-spacing: 0.05em;
+}
+
+/* ── Main ── */
+.main-content {
+    flex: 1;
+}
+
+/* ── Hero ── */
+.hero {
+    min-height: calc(100vh - 130px);
+    display: flex;
+    align-items: center;
+    background: linear-gradient(160deg, var(--dark) 0%, #1a3d1a 100%);
+    color: var(--light);
+    padding: 4rem 0;
+}
+
+.hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.hero-title {
+    font-size: clamp(3.5rem, 10vw, 7rem);
+    font-weight: 900;
+    line-height: 1;
+}
+
+.accent {
+    color: var(--green);
+}
+
+.hero-subtitle {
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+    font-weight: 600;
+    color: var(--yellow);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.hero-dates {
+    font-size: 1.1rem;
+    color: var(--terracotta);
+    font-weight: 600;
+}
+
+.hero-desc {
+    max-width: 620px;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #ccc;
+}
+
+/* ── Footer ── */
+.site-footer {
+    background: var(--dark);
+    color: #888;
+    text-align: center;
+    padding: 1.25rem 0;
+    font-size: 0.9rem;
+    border-top: 3px solid var(--terracotta);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+    .hero {
+        padding: 3rem 0;
+        min-height: auto;
+    }
+}
