@@ -35,12 +35,23 @@ body {
     background: var(--dark);
     padding: 1rem 0;
     border-bottom: 4px solid var(--green);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.site-header .container {
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.header-brand {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    text-decoration: none;
 }
 
 .header-logo {
@@ -52,6 +63,28 @@ body {
     font-weight: 800;
     color: var(--yellow);
     letter-spacing: 0.05em;
+}
+
+/* ── Nav ── */
+.site-nav {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.nav-link {
+    color: #ccc;
+    text-decoration: none;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background: var(--green);
+    color: #fff;
 }
 
 /* ── Main ── */
@@ -71,8 +104,29 @@ body {
 
 .hero-inner {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 3rem;
+}
+
+.hero-text {
+    flex: 1;
+    display: flex;
     flex-direction: column;
     gap: 1.25rem;
+}
+
+.hero-image {
+    flex: 0 0 420px;
+}
+
+.hero-img {
+    width: 100%;
+    height: 480px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    border: 3px solid var(--green);
 }
 
 .hero-title {
@@ -116,10 +170,492 @@ body {
     border-top: 3px solid var(--terracotta);
 }
 
+/* ── Page Sites ── */
+.page-sites {
+    padding: 3rem 0 5rem;
+}
+
+.page-header {
+    margin-bottom: 2.5rem;
+}
+
+.page-header h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+}
+
+.page-intro {
+    font-size: 1.05rem;
+    color: #555;
+    max-width: 600px;
+}
+
+/* Onglets */
+.zone-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    padding: 0.5rem 1.25rem;
+    border: 2px solid #ddd;
+    background: #fff;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+}
+
+.tab-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.tab-btn.active {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+}
+
+/* Zone */
+.zone-section {
+    margin-bottom: 3rem;
+}
+
+.zone-title {
+    margin-bottom: 1.25rem;
+}
+
+.zone-badge {
+    display: inline-block;
+    padding: 0.3rem 1rem;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.zone-dakar       { background: var(--green);     color: #fff; }
+.zone-diamniadio  { background: var(--terracotta); color: #fff; }
+.zone-saly        { background: #1d6fa4;           color: #fff; }
+
+/* Grille de cartes */
+.sites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.site-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.site-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.card-sport {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--terracotta);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.card-nom {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--dark);
+}
+
+.card-desc {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.6;
+    flex: 1;
+}
+
+.card-footer {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #eee;
+}
+
+.card-capacite {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #777;
+}
+
+/* ── Page Carte ── */
+.page-carte {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 68px);
+}
+
+.carte-header {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.carte-header h1 {
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+
+.legende {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.leg-item {
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.leg-dakar       { background: var(--green); }
+.leg-diamniadio  { background: var(--terracotta); }
+.leg-saly        { background: #1d6fa4; }
+
+#map {
+    flex: 1;
+    min-height: 400px;
+    z-index: 1;
+}
+
+/* Liste cliquable sous la carte */
+.carte-liste {
+    display: flex;
+    gap: 2rem;
+    padding: 1.5rem;
+    background: var(--dark);
+    flex-wrap: wrap;
+    overflow-y: auto;
+    max-height: 220px;
+}
+
+.cl-zone { min-width: 200px; flex: 1; }
+
+.cl-zone-titre {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    margin-bottom: 0.6rem;
+}
+
+.cl-dakar       { background: var(--green); }
+.cl-diamniadio  { background: var(--terracotta); }
+.cl-saly        { background: #1d6fa4; }
+
+.cl-site {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0.45rem 0;
+    cursor: pointer;
+    text-align: left;
+    gap: 0.1rem;
+    transition: background 0.15s;
+    border-radius: 4px;
+    padding-left: 0.4rem;
+}
+
+.cl-site:hover { background: rgba(255,255,255,0.08); }
+
+.cl-nom {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #f0f0f0;
+}
+
+.cl-sport {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* Popup Leaflet */
+.popup-content { font-family: 'Segoe UI', system-ui, sans-serif; }
+
+.popup-zone {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    color: #fff;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+}
+
+.popup-dakar       { background: var(--green); }
+.popup-diamniadio  { background: var(--terracotta); }
+.popup-saly        { background: #1d6fa4; }
+
+.popup-nom   { display: block; font-size: 1rem; font-weight: 800; margin-bottom: 0.3rem; }
+.popup-sport { font-size: 0.82rem; color: var(--terracotta); font-weight: 600; margin-bottom: 0.4rem; }
+.popup-desc  { font-size: 0.82rem; color: #444; line-height: 1.5; margin-bottom: 0.4rem; }
+.popup-cap   { font-size: 0.8rem; color: #666; font-weight: 600; }
+
+/* ── Page Programme ── */
+.page-programme { padding: 2.5rem 0 5rem; }
+
+.prog-header { margin-bottom: 1.75rem; }
+.prog-header h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; }
+
+/* Filtres sport */
+.prog-filtres {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.filtre-btn {
+    padding: 0.35rem 0.9rem;
+    border: 2px solid #ddd;
+    background: #fff;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+}
+
+.filtre-btn:hover  { border-color: var(--terracotta); color: var(--terracotta); }
+.filtre-btn.active { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+
+/* Navigation jours */
+.jours-nav {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+}
+
+.jour-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.4rem 0.7rem;
+    border: 2px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 46px;
+}
+
+.jour-btn:hover  { border-color: var(--green); }
+.jour-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+.jour-num  { font-size: 1.1rem; font-weight: 800; line-height: 1; }
+.jour-mois { font-size: 0.65rem; text-transform: uppercase; font-weight: 600; opacity: 0.8; }
+
+/* Titre du jour */
+.jour-titre {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-transform: capitalize;
+}
+
+.jour-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #eee;
+    color: #666;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+}
+
+.hidden { display: none !important; }
+
+/* Liste épreuves */
+.epreuves-liste { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.epreuve-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s;
+}
+
+.epreuve-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.09); }
+
+.ep-heure {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--dark);
+    min-width: 56px;
+    text-align: center;
+    border-right: 2px solid #eee;
+    padding-right: 1rem;
+}
+
+.ep-corps { flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+
+.ep-meta { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+.ep-sport {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--terracotta);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.ep-phase {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    color: #fff;
+}
+
+.phase-qualifications { background: #64748b; }
+.phase-demi-finales   { background: #7c3aed; }
+.phase-finale         { background: var(--red); }
+.phase-ceremonie      { background: var(--yellow); color: var(--dark) !important; }
+
+.ep-titre { font-size: 0.95rem; font-weight: 700; color: var(--dark); }
+
+.ep-site {
+    font-size: 0.82rem;
+    color: #777;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.ep-zone {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    color: #fff;
+}
+
+.zone-dakar       { background: var(--green); }
+.zone-diamniadio  { background: var(--terracotta); }
+.zone-saly        { background: #1d6fa4; }
+
+.ep-agenda-btn {
+    background: none;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    color: #bbb;
+}
+
+.ep-agenda-btn:hover,
+.ep-agenda-btn.en-agenda {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: #fffbeb;
+}
+
+/* ── Agenda ── */
+.nav-agenda { position: relative; }
+
+#agenda-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--yellow);
+    color: var(--dark);
+    font-size: 0.65rem;
+    font-weight: 800;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.agenda-vide {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: #999;
+}
+
+.agenda-vide-icon { font-size: 4rem; margin-bottom: 1rem; }
+.agenda-vide-msg  { font-size: 1.3rem; font-weight: 700; color: #555; margin-bottom: 0.5rem; }
+.agenda-vide-sub  { font-size: 0.95rem; }
+.agenda-vide-sub a { color: var(--green); font-weight: 600; }
+
 /* ── Responsive ── */
+@media (max-width: 900px) {
+    .hero-inner {
+        flex-direction: column;
+    }
+    .hero-image {
+        flex: unset;
+        width: 100%;
+    }
+    .hero-img {
+        height: 280px;
+    }
+}
+
 @media (max-width: 600px) {
     .hero {
         padding: 3rem 0;
         min-height: auto;
+    }
+
+    .site-nav { display: none; }
+
+    .sites-grid {
+        grid-template-columns: 1fr;
     }
 }

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Sites olympiques — JOJ Dakar 2026{% endblock %}
+
+{% block content %}
+<section class="page-sites">
+    <div class="container">
+
+        <div class="page-header">
+            <h1>Sites <span class="accent">olympiques</span></h1>
+            <p class="page-intro">
+                11 sites répartis sur 3 zones accueillent les compétitions des
+                Jeux Olympiques de la Jeunesse Dakar 2026.
+            </p>
+        </div>
+
+        <!-- Onglets de filtre -->
+        <div class="zone-tabs">
+            <button class="tab-btn active" data-zone="all">Toutes les zones</button>
+            {% for zone in zones %}
+            <button class="tab-btn" data-zone="{{ zone }}">{{ zone }}</button>
+            {% endfor %}
+        </div>
+
+        <!-- Sites par zone -->
+        {% for zone in zones %}
+        <div class="zone-section" data-zone="{{ zone }}">
+            <h2 class="zone-title">
+                <span class="zone-badge zone-{{ zone | lower }}">{{ zone }}</span>
+            </h2>
+            <div class="sites-grid">
+                {% for site in sites_par_zone[zone] %}
+                <article class="site-card">
+                    <div class="card-sport">{{ site.sport }}</div>
+                    <h3 class="card-nom">{{ site.nom }}</h3>
+                    <p class="card-desc">{{ site.description }}</p>
+                    <div class="card-footer">
+                        <span class="card-capacite">
+                            &#128101; {{ "{:,}".format(site.capacite).replace(",", " ") }} places
+                        </span>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</section>
+
+<script>
+    const btns = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.zone-section');
+
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const zone = btn.dataset.zone;
+            sections.forEach(s => {
+                s.style.display = (zone === 'all' || s.dataset.zone === zone) ? 'block' : 'none';
+            });
+        });
+    });
+</script>
+{% endblock %}

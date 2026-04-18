@@ -8,9 +8,36 @@
 </head>
 <body>
     <header class="site-header">
-        <div class="container">
-            <span class="header-logo">&#127941;</span>
-            <span class="header-title">Dakar 2026</span>
+        <div class="container header-inner">
+            <a href="{{ url_for('main.index') }}" class="header-brand">
+                <span class="header-logo">&#127941;</span>
+                <span class="header-title">Dakar 2026</span>
+            </a>
+            <nav class="site-nav">
+                <a href="{{ url_for('main.index') }}"
+                   class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
+                    Accueil
+                </a>
+                <a href="{{ url_for('main.sites') }}"
+                   class="nav-link {% if request.endpoint == 'main.sites' %}active{% endif %}">
+                    Sites
+                </a>
+                <a href="{{ url_for('main.programme') }}"
+                   class="nav-link {% if request.endpoint == 'main.programme' %}active{% endif %}">
+                    Programme
+                </a>
+                <a href="{{ url_for('main.carte') }}"
+                   class="nav-link {% if request.endpoint == 'main.carte' %}active{% endif %}">
+                    Carte
+                </a>
+                <a href="{{ url_for('main.agenda') }}"
+                   class="nav-link nav-agenda {% if request.endpoint == 'main.agenda' %}active{% endif %}">
+                    Mon agenda
+                    {% set nb = session.get('agenda', [])|length %}
+                    <span id="agenda-count"
+                          style="display:{{ 'inline' if nb > 0 else 'none' }}">{{ nb }}</span>
+                </a>
+            </nav>
         </div>
     </header>
 

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Carte des sites — JOJ Dakar 2026{% endblock %}
+
+{% block content %}
+<section class="page-carte">
+    <div class="carte-header container">
+        <h1>Carte des sites <span class="accent">olympiques</span></h1>
+        <div class="legende">
+            <span class="leg-item leg-dakar">Dakar</span>
+            <span class="leg-item leg-diamniadio">Diamniadio</span>
+            <span class="leg-item leg-saly">Saly</span>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="carte-liste container" id="carte-liste"></div>
+</section>
+
+<!-- Leaflet CSS + JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+const COULEURS = {
+    "Dakar":      "#00853F",
+    "Diamniadio": "#C2410C",
+    "Saly":       "#1d6fa4"
+};
+
+// Initialisation de la carte centrée sur Dakar
+const map = L.map("map", { zoomControl: true }).setView([14.65, -17.2], 9);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18
+}).addTo(map);
+
+function creerIcone(zone) {
+    const couleur = COULEURS[zone] || "#666";
+    const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 42" width="32" height="42">
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 26 16 26S32 26 32 16C32 7.163 24.837 0 16 0z"
+                  fill="${couleur}" stroke="#fff" stroke-width="2"/>
+            <circle cx="16" cy="16" r="7" fill="#fff"/>
+        </svg>`;
+    return L.divIcon({
+        html: svg,
+        className: "",
+        iconSize: [32, 42],
+        iconAnchor: [16, 42],
+        popupAnchor: [0, -44]
+    });
+}
+
+// Chargement des sites depuis l'API
+fetch("/api/sites")
+    .then(r => r.json())
+    .then(sites => {
+        const liste = document.getElementById("carte-liste");
+        const groupes = {};
+
+        sites.forEach(site => {
+            // Marqueur
+            const marker = L.marker([site.latitude, site.longitude], {
+                icon: creerIcone(site.zone)
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <div class="popup-content">
+                    <div class="popup-zone popup-${site.zone.toLowerCase()}">${site.zone}</div>
+                    <strong class="popup-nom">${site.nom}</strong>
+                    <p class="popup-sport">&#127941; ${site.sport}</p>
+                    <p class="popup-desc">${site.description}</p>
+                    <p class="popup-cap">&#128101; ${site.capacite.toLocaleString("fr-FR")} places</p>
+                </div>
+            `, { maxWidth: 280 });
+
+            // Liste latérale
+            if (!groupes[site.zone]) groupes[site.zone] = [];
+            groupes[site.zone].push({ site, marker });
+        });
+
+        // Construction de la liste cliquable
+        Object.entries(groupes).forEach(([zone, items]) => {
+            const section = document.createElement("div");
+            section.className = "cl-zone";
+            section.innerHTML = `<h3 class="cl-zone-titre cl-${zone.toLowerCase()}">${zone}</h3>`;
+
+            items.forEach(({ site, marker }) => {
+                const btn = document.createElement("button");
+                btn.className = "cl-site";
+                btn.innerHTML = `
+                    <span class="cl-nom">${site.nom}</span>
+                    <span class="cl-sport">${site.sport}</span>
+                `;
+                btn.addEventListener("click", () => {
+                    map.flyTo([site.latitude, site.longitude], 14, { duration: 1 });
+                    marker.openPopup();
+                });
+                section.appendChild(btn);
+            });
+
+            liste.appendChild(section);
+        });
+    });
+</script>
+{% endblock %}

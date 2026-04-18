@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Programme — JOJ Dakar 2026{% endblock %}
+
+{% block content %}
+<section class="page-programme">
+  <div class="container">
+
+    <div class="prog-header">
+      <h1>Programme des <span class="accent">compétitions</span></h1>
+      <p class="page-intro">31 octobre — 13 novembre 2026 · {{ jours|length }} jours · {{ sports|length }} sports</p>
+    </div>
+
+    <!-- Filtre sport -->
+    <div class="prog-filtres">
+      <button class="filtre-btn active" data-sport="tous">Tous les sports</button>
+      {% for sport in sports %}
+      <button class="filtre-btn" data-sport="{{ sport }}">{{ sport }}</button>
+      {% endfor %}
+    </div>
+
+    <!-- Navigation jours -->
+    <div class="jours-nav">
+      {% for jour in jours %}
+      <button class="jour-btn {% if loop.first %}active{% endif %}"
+              data-jour="{{ jour.isoformat() }}">
+        <span class="jour-num">{{ jour.day }}</span>
+        <span class="jour-mois">{{ jour.strftime('%b') }}</span>
+      </button>
+      {% endfor %}
+    </div>
+
+    <!-- Contenu par jour -->
+    {% for jour in jours %}
+    <div class="jour-content {% if not loop.first %}hidden{% endif %}"
+         id="jour-{{ jour.isoformat() }}">
+
+      <h2 class="jour-titre">
+        {{ jour.strftime('%A %d %B 2026')|capitalize }}
+        <span class="jour-count">{{ par_jour[jour]|length }} épreuve(s)</span>
+      </h2>
+
+      <div class="epreuves-liste">
+        {% for e in par_jour[jour] %}
+        <div class="epreuve-card" data-sport="{{ e.sport }}">
+          <div class="ep-heure">{{ e.date_heure.strftime('%H:%M') }}</div>
+          <div class="ep-corps">
+            <div class="ep-meta">
+              <span class="ep-sport">{{ e.sport }}</span>
+              <span class="ep-phase phase-{{ e.phase|lower|replace(' ', '-')|replace('é','e')|replace('è','e') }}">
+                {{ e.phase }}
+              </span>
+            </div>
+            <p class="ep-titre">{{ e.titre }}</p>
+            <p class="ep-site">
+              <span class="ep-zone zone-{{ e.site.zone|lower }}">{{ e.site.zone }}</span>
+              {{ e.site.nom }}
+            </p>
+          </div>
+          <button class="ep-agenda-btn {% if e.id in agenda %}en-agenda{% endif %}"
+                  data-id="{{ e.id }}"
+                  title="{% if e.id in agenda %}Retirer de mon agenda{% else %}Ajouter à mon agenda{% endif %}">
+            {% if e.id in agenda %}&#9733;{% else %}&#9734;{% endif %}
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+</section>
+
+<script>
+// ── Agenda toggle ─────────────────────────────────────────────────
+document.querySelectorAll('.ep-agenda-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    fetch(`/api/agenda/toggle/${id}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        const ajout = data.action === 'ajout';
+        btn.innerHTML    = ajout ? '&#9733;' : '&#9734;';
+        btn.title        = ajout ? 'Retirer de mon agenda' : 'Ajouter à mon agenda';
+        btn.classList.toggle('en-agenda', ajout);
+
+        // Mise à jour du compteur dans la nav
+        const badge = document.getElementById('agenda-count');
+        if (badge) {
+          badge.textContent = data.total;
+          badge.style.display = data.total > 0 ? 'inline' : 'none';
+        }
+      });
+  });
+});
+
+// ── Navigation jours ──────────────────────────────────────────────
+const jourBtns    = document.querySelectorAll('.jour-btn');
+const jourPanels  = document.querySelectorAll('.jour-content');
+
+jourBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    jourBtns.forEach(b => b.classList.remove('active'));
+    jourPanels.forEach(p => p.classList.add('hidden'));
+    btn.classList.add('active');
+    document.getElementById('jour-' + btn.dataset.jour).classList.remove('hidden');
+    filtrerSport(); // réappliquer le filtre sport au changement de jour
+  });
+});
+
+// ── Filtre sport ──────────────────────────────────────────────────
+const filtreBtns = document.querySelectorAll('.filtre-btn');
+let sportActif = 'tous';
+
+function filtrerSport() {
+  document.querySelectorAll('.jour-content:not(.hidden) .epreuve-card').forEach(card => {
+    const match = sportActif === 'tous' || card.dataset.sport === sportActif;
+    card.style.display = match ? 'flex' : 'none';
+  });
+}
+
+filtreBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filtreBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sportActif = btn.dataset.sport;
+    filtrerSport();
+  });
+});
+</script>
+{% endblock %}

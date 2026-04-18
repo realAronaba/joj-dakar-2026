@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Agenda — JOJ Dakar 2026{% endblock %}
+
+{% block content %}
+<section class="page-programme">
+  <div class="container">
+
+    <div class="prog-header">
+      <h1>Mon <span class="accent">Agenda</span></h1>
+      {% if total > 0 %}
+      <p class="page-intro">{{ total }} épreuve(s) sélectionnée(s) · triées par date</p>
+      {% endif %}
+    </div>
+
+    {% if not jours %}
+    <div class="agenda-vide">
+      <p class="agenda-vide-icon">&#9734;</p>
+      <p class="agenda-vide-msg">Ton agenda est vide.</p>
+      <p class="agenda-vide-sub">
+        Va sur la page <a href="{{ url_for('main.programme') }}">Programme</a>
+        et clique sur &#9734; pour ajouter des épreuves.
+      </p>
+    </div>
+
+    {% else %}
+    {% for jour in jours %}
+    <div class="jour-content">
+      <h2 class="jour-titre">
+        {{ jour.strftime('%A %d %B 2026')|capitalize }}
+        <span class="jour-count">{{ par_jour[jour]|length }} épreuve(s)</span>
+      </h2>
+
+      <div class="epreuves-liste">
+        {% for e in par_jour[jour] %}
+        <div class="epreuve-card">
+          <div class="ep-heure">{{ e.date_heure.strftime('%H:%M') }}</div>
+          <div class="ep-corps">
+            <div class="ep-meta">
+              <span class="ep-sport">{{ e.sport }}</span>
+              <span class="ep-phase phase-{{ e.phase|lower|replace(' ', '-')|replace('é','e')|replace('è','e') }}">
+                {{ e.phase }}
+              </span>
+            </div>
+            <p class="ep-titre">{{ e.titre }}</p>
+            <p class="ep-site">
+              <span class="ep-zone zone-{{ e.site.zone|lower }}">{{ e.site.zone }}</span>
+              {{ e.site.nom }}
+            </p>
+          </div>
+          <button class="ep-agenda-btn en-agenda"
+                  data-id="{{ e.id }}"
+                  title="Retirer de mon agenda">
+            &#9733;
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+  </div>
+</section>
+
+<script>
+document.querySelectorAll('.ep-agenda-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    fetch(`/api/agenda/toggle/${btn.dataset.id}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(() => {
+        // Retrait : on supprime la carte directement
+        const card = btn.closest('.epreuve-card');
+        card.style.transition = 'opacity 0.3s';
+        card.style.opacity = '0';
+        setTimeout(() => {
+          card.remove();
+          // Met à jour le badge nav
+          const badge = document.getElementById('agenda-count');
+          const restants = document.querySelectorAll('.epreuve-card').length;
+          if (badge) {
+            badge.textContent = restants;
+            badge.style.display = restants > 0 ? 'inline' : 'none';
+          }
+          if (restants === 0) location.reload();
+        }, 300);
+      });
+  });
+});
+</script>
+{% endblock %}
