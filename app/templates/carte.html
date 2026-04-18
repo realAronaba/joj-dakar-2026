@@ -4,106 +4,388 @@
 
 {% block content %}
 <section class="page-carte">
-    <div class="carte-header container">
-        <h1>Carte des sites <span class="accent">olympiques</span></h1>
-        <div class="legende">
-            <span class="leg-item leg-dakar">Dakar</span>
-            <span class="leg-item leg-diamniadio">Diamniadio</span>
-            <span class="leg-item leg-saly">Saly</span>
-        </div>
-    </div>
 
+  <div class="carte-header container">
+    <h1>Carte des sites <span class="accent">olympiques</span></h1>
+    <div class="legende">
+      <span class="leg-item leg-dakar">Dakar</span>
+      <span class="leg-item leg-diamniadio">Diamniadio</span>
+      <span class="leg-item leg-saly">Saly</span>
+    </div>
+  </div>
+
+  <div class="carte-layout">
     <div id="map"></div>
 
-    <div class="carte-liste container" id="carte-liste"></div>
+    <!-- Panneau latéral -->
+    <aside class="site-panel" id="sitePanel">
+      <button class="panel-close" id="panelClose" aria-label="Fermer">&#10005;</button>
+
+      <!-- Onglets -->
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-tab="info">📋 Site</button>
+        <button class="panel-tab" data-tab="chat">🤖 Aux alentours</button>
+      </div>
+
+      <!-- Onglet info -->
+      <div class="panel-body" id="panelBody"></div>
+
+      <!-- Onglet chatbot -->
+      <div class="panel-chat hidden" id="panelChat">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-quick" id="chatQuick">
+          <button class="qbtn" data-query="restaurants">🍽️ Restaurants</button>
+          <button class="qbtn" data-query="bars">🍺 Bars</button>
+          <button class="qbtn" data-query="hôtels">🏨 Hôtels</button>
+          <button class="qbtn" data-query="cafés">☕ Cafés</button>
+        </div>
+        <form class="chat-form" id="chatForm">
+          <input class="chat-input" id="chatInput"
+                 type="text" placeholder="Votre question…" autocomplete="off">
+          <button class="chat-send" type="submit" aria-label="Envoyer">&#8593;</button>
+        </form>
+      </div>
+    </aside>
+  </div>
+
+  <div class="carte-liste container" id="carte-liste"></div>
+
 </section>
 
-<!-- Leaflet CSS + JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-const COULEURS = {
-    "Dakar":      "#00853F",
-    "Diamniadio": "#C2410C",
-    "Saly":       "#1d6fa4"
-};
+/* ─── Carte ──────────────────────────────────────────────────────── */
+const COULEURS = { Dakar:"#00853F", Diamniadio:"#C2410C", Saly:"#1d6fa4" };
 
-// Initialisation de la carte centrée sur Dakar
 const map = L.map("map", { zoomControl: true }).setView([14.65, -17.2], 9);
-
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 18
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom: 18
 }).addTo(map);
 
-function creerIcone(zone) {
-    const couleur = COULEURS[zone] || "#666";
-    const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 42" width="32" height="42">
-            <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 26 16 26S32 26 32 16C32 7.163 24.837 0 16 0z"
-                  fill="${couleur}" stroke="#fff" stroke-width="2"/>
-            <circle cx="16" cy="16" r="7" fill="#fff"/>
-        </svg>`;
-    return L.divIcon({
-        html: svg,
-        className: "",
-        iconSize: [32, 42],
-        iconAnchor: [16, 42],
-        popupAnchor: [0, -44]
+function creerIcone(zone, actif=false) {
+  const c = COULEURS[zone] || "#666";
+  const s = actif ? 1.3 : 1;
+  return L.divIcon({
+    html:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 42" width="${32*s}" height="${42*s}"
+      style="filter:${actif?'drop-shadow(0 2px 6px rgba(0,0,0,.5))':'none'}">
+      <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 26 16 26S32 26 32 16C32 7.163 24.837 0 16 0z"
+            fill="${c}" stroke="#fff" stroke-width="2"/>
+      <circle cx="16" cy="16" r="7" fill="#fff"/>
+    </svg>`,
+    className:"", iconSize:[32*s,42*s], iconAnchor:[16*s,42*s], popupAnchor:[0,-44*s]
+  });
+}
+
+/* ─── Panneau ────────────────────────────────────────────────────── */
+const panel     = document.getElementById("sitePanel");
+const panelBody = document.getElementById("panelBody");
+const panelChat = document.getElementById("panelChat");
+let activeBtn=null, activeMarker=null;
+let currentSite = null;   // { lat, lon, nom, zone }
+
+/* Tabs */
+document.querySelectorAll(".panel-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".panel-tab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    const t = tab.dataset.tab;
+    panelBody.classList.toggle("hidden", t !== "info");
+    panelChat.classList.toggle("hidden", t !== "chat");
+    if (t === "chat" && currentSite && !panelChat.dataset.init) {
+      initChat(currentSite);
+      panelChat.dataset.init = "1";
+    }
+  });
+});
+
+/* Fermeture */
+document.getElementById("panelClose").addEventListener("click", () => {
+  panel.classList.remove("open");
+  if (activeMarker) { activeMarker.setIcon(creerIcone(activeMarker._zone)); activeMarker=null; }
+  if (activeBtn)    { activeBtn.classList.remove("active"); activeBtn=null; }
+  currentSite = null;
+  panelChat.dataset.init = "";
+  // Reset tab info
+  document.querySelectorAll(".panel-tab")[0].click();
+});
+
+function ouvrirPanel(siteId, marker, zone) {
+  if (activeMarker && activeMarker !== marker) activeMarker.setIcon(creerIcone(activeMarker._zone));
+  activeMarker = marker;
+  activeMarker._zone = zone;
+  marker.setIcon(creerIcone(zone, true));
+
+  panelBody.innerHTML = `<div class="panel-loader"><span></span><span></span><span></span></div>`;
+  panelChat.dataset.init = "";
+  document.querySelectorAll(".panel-tab")[0].click();   // reset sur onglet Info
+  panel.classList.add("open");
+
+  fetch(`/api/sites/${siteId}`)
+    .then(r => r.json())
+    .then(data => {
+      const c = COULEURS[data.zone] || "#666";
+      currentSite = { lat: data.latitude, lon: data.longitude, nom: data.nom, zone: data.zone };
+
+      const parJour = {};
+      data.epreuves.forEach(e => {
+        if (!parJour[e.jour]) parJour[e.jour] = [];
+        parJour[e.jour].push(e);
+      });
+
+      const joursHtml = Object.entries(parJour).map(([jour,eps]) => `
+        <div class="panel-jour">
+          <p class="panel-jour-titre">${jour}</p>
+          ${eps.map(e=>`
+            <div class="panel-ep">
+              <span class="panel-ep-heure">${e.date_heure.split('·')[1].trim()}</span>
+              <div class="panel-ep-info">
+                <span class="panel-ep-titre">${e.titre}</span>
+                <span class="panel-ep-phase" style="background:${c}22;color:${c}">${e.phase}</span>
+              </div>
+            </div>`).join('')}
+        </div>`).join('');
+
+      panelBody.innerHTML = `
+        <div class="panel-zone" style="background:${c}">${data.zone}</div>
+        <h2 class="panel-nom">${data.nom}</h2>
+        <div class="panel-meta">
+          <span class="panel-sport">🏅 ${data.sport}</span>
+          <span class="panel-cap">👥 ${data.capacite.toLocaleString('fr-FR')} places</span>
+        </div>
+        <p class="panel-desc">${data.description}</p>
+        <div class="panel-epreuves">
+          <p class="panel-epreuves-titre">Programme · <strong>${data.epreuves.length}</strong> épreuve${data.epreuves.length>1?'s':''}</p>
+          ${data.epreuves.length ? joursHtml : '<p class="panel-vide">Aucune épreuve programmée.</p>'}
+        </div>`;
     });
 }
 
-// Chargement des sites depuis l'API
-fetch("/api/sites")
-    .then(r => r.json())
-    .then(sites => {
-        const liste = document.getElementById("carte-liste");
-        const groupes = {};
+/* ─── Chatbot Aux alentours ──────────────────────────────────────── */
+const CATEGORIES = {
+  restaurant: { label:"Restaurants", emoji:"🍽️",
+    query: (lat,lon) => `node["amenity"="restaurant"](around:1000,${lat},${lon});` },
+  bar:        { label:"Bars",        emoji:"🍺",
+    query: (lat,lon) => `node["amenity"="bar"](around:1000,${lat},${lon});
+                         node["amenity"="pub"](around:1000,${lat},${lon});` },
+  hôtel:      { label:"Hôtels",     emoji:"🏨",
+    query: (lat,lon) => `node["tourism"="hotel"](around:1000,${lat},${lon});
+                         node["tourism"="guest_house"](around:1000,${lat},${lon});` },
+  café:       { label:"Cafés",      emoji:"☕",
+    query: (lat,lon) => `node["amenity"="cafe"](around:1000,${lat},${lon});` },
+};
 
-        sites.forEach(site => {
-            // Marqueur
-            const marker = L.marker([site.latitude, site.longitude], {
-                icon: creerIcone(site.zone)
-            }).addTo(map);
+const MOTS_CLES = {
+  restaurant:["restaurant","manger","repas","nourriture","food","dîner","déjeuner"],
+  bar:       ["bar","boire","boisson","bière","pub","drink"],
+  hôtel:     ["hôtel","hotel","hébergement","dormir","nuit","chambre","logement"],
+  café:      ["café","cafe","coffee","petit-déjeuner","breakfast","thé"],
+};
 
-            marker.bindPopup(`
-                <div class="popup-content">
-                    <div class="popup-zone popup-${site.zone.toLowerCase()}">${site.zone}</div>
-                    <strong class="popup-nom">${site.nom}</strong>
-                    <p class="popup-sport">&#127941; ${site.sport}</p>
-                    <p class="popup-desc">${site.description}</p>
-                    <p class="popup-cap">&#128101; ${site.capacite.toLocaleString("fr-FR")} places</p>
-                </div>
-            `, { maxWidth: 280 });
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371000, r=Math.PI/180;
+  const dLat=(lat2-lat1)*r, dLon=(lon2-lon1)*r;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLon/2)**2;
+  return Math.round(2*R*Math.asin(Math.sqrt(a)));
+}
 
-            // Liste latérale
-            if (!groupes[site.zone]) groupes[site.zone] = [];
-            groupes[site.zone].push({ site, marker });
-        });
+function detectCategorie(texte) {
+  const t = texte.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  for (const [cat, mots] of Object.entries(MOTS_CLES)) {
+    for (const mot of mots) {
+      if (t.includes(mot.normalize("NFD").replace(/[\u0300-\u036f]/g,""))) return cat;
+    }
+  }
+  return null;
+}
 
-        // Construction de la liste cliquable
-        Object.entries(groupes).forEach(([zone, items]) => {
-            const section = document.createElement("div");
-            section.className = "cl-zone";
-            section.innerHTML = `<h3 class="cl-zone-titre cl-${zone.toLowerCase()}">${zone}</h3>`;
+function ajouterMessage(texte, role, html=false) {
+  const box = document.getElementById("chatMessages");
+  const div = document.createElement("div");
+  div.className = `chat-msg chat-${role}`;
+  if (html) div.innerHTML = texte; else div.textContent = texte;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
 
-            items.forEach(({ site, marker }) => {
-                const btn = document.createElement("button");
-                btn.className = "cl-site";
-                btn.innerHTML = `
-                    <span class="cl-nom">${site.nom}</span>
-                    <span class="cl-sport">${site.sport}</span>
-                `;
-                btn.addEventListener("click", () => {
-                    map.flyTo([site.latitude, site.longitude], 14, { duration: 1 });
-                    marker.openPopup();
-                });
-                section.appendChild(btn);
-            });
+function ajouterLoader() {
+  const box = document.getElementById("chatMessages");
+  const div = document.createElement("div");
+  div.className = "chat-msg chat-bot chat-loading";
+  div.id = "chatLoadingMsg";
+  div.innerHTML = `<span></span><span></span><span></span>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
 
-            liste.appendChild(section);
-        });
+function retirerLoader() {
+  const el = document.getElementById("chatLoadingMsg");
+  if (el) el.remove();
+}
+
+async function rechercherPlaces(cat) {
+  if (!currentSite) return;
+  const { lat, lon } = currentSite;
+  const cfg = CATEGORIES[cat];
+  const overpassQuery = `[out:json][timeout:15];(${cfg.query(lat,lon)});out body;`;
+  const url = "https://overpass-api.de/api/interpreter";
+
+  ajouterLoader();
+  try {
+    const res = await fetch(url, {
+      method:"POST",
+      body:"data="+encodeURIComponent(overpassQuery)
     });
+    const data = await res.json();
+    retirerLoader();
+
+    if (!data.elements || data.elements.length === 0) {
+      ajouterMessage(
+        `Aucun(e) ${cfg.label.toLowerCase()} trouvé(e) dans un rayon de 1 km autour du site selon OpenStreetMap. Les données OSM peuvent être incomplètes dans cette zone.`,
+        "bot"
+      );
+      return;
+    }
+
+    // Trier par distance
+    const places = data.elements
+      .map(el => ({
+        nom:    el.tags.name || "Sans nom",
+        dist:   haversine(lat, lon, el.lat, el.lon),
+        horaires: el.tags.opening_hours || null,
+        tel:    el.tags.phone || el.tags["contact:phone"] || null,
+        adresse: el.tags["addr:street"]
+          ? `${el.tags["addr:housenumber"]||""} ${el.tags["addr:street"]}`.trim()
+          : null,
+      }))
+      .filter(p => p.nom !== "Sans nom" || true)
+      .sort((a,b) => a.dist - b.dist)
+      .slice(0, 8);
+
+    const lignes = places.map(p => `
+      <div class="chat-place">
+        <div class="cp-header">
+          <span class="cp-nom">${p.nom}</span>
+          <span class="cp-dist">${p.dist < 1000 ? p.dist+'m' : (p.dist/1000).toFixed(1)+'km'}</span>
+        </div>
+        ${p.adresse  ? `<div class="cp-detail">📍 ${p.adresse}</div>` : ''}
+        ${p.horaires ? `<div class="cp-detail">🕐 ${p.horaires}</div>` : ''}
+        ${p.tel      ? `<div class="cp-detail">📞 ${p.tel}</div>` : ''}
+      </div>`).join('');
+
+    ajouterMessage(
+      `<p class="chat-result-titre">${cfg.emoji} ${cfg.label} à proximité <span class="chat-source">· OpenStreetMap</span></p>${lignes}`,
+      "bot", true
+    );
+
+  } catch(e) {
+    retirerLoader();
+    ajouterMessage("Impossible de contacter OpenStreetMap. Vérifiez votre connexion.", "bot");
+  }
+}
+
+function initChat(site) {
+  const box = document.getElementById("chatMessages");
+  box.innerHTML = "";
+  ajouterMessage(
+    `<p>👋 Bonjour ! Je suis votre assistant local pour <strong>${site.nom}</strong>.</p>
+     <p style="margin-top:.5rem">Je recherche dans un rayon de <strong>1 km</strong> autour du site, en temps réel via <strong>OpenStreetMap</strong> :</p>
+     <ul class="chat-welcome-list">
+       <li>🍽️ Restaurants et lieux pour manger</li>
+       <li>🍺 Bars et pubs</li>
+       <li>🏨 Hôtels et hébergements</li>
+       <li>☕ Cafés</li>
+     </ul>
+     <p style="margin-top:.5rem;font-size:.8rem;color:#aaa">⚠️ Je n'affiche que des données réelles. Si rien n'apparaît, les données OSM peuvent être incomplètes pour cette zone.</p>`,
+    "bot", true
+  );
+}
+
+/* Quick buttons */
+document.querySelectorAll(".qbtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const q = btn.dataset.query;
+    ajouterMessage(btn.textContent, "user");
+    rechercherPlaces(q.replace(/s$/, "").replace("hôtels","hôtel").replace("cafés","café").replace("bars","bar").replace("restaurants","restaurant"));
+  });
+});
+
+/* Formulaire texte libre */
+document.getElementById("chatForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const inp = document.getElementById("chatInput");
+  const texte = inp.value.trim();
+  if (!texte) return;
+  ajouterMessage(texte, "user");
+  inp.value = "";
+
+  const cat = detectCategorie(texte);
+  if (cat) {
+    rechercherPlaces(cat);
+  } else {
+    ajouterMessage(
+      "Je peux rechercher des restaurants, bars, hôtels ou cafés à proximité. Précisez votre demande !",
+      "bot"
+    );
+  }
+});
+
+/* ─── Chargement des sites ───────────────────────────────────────── */
+fetch("/api/sites")
+  .then(r => r.json())
+  .then(sites => {
+    const liste   = document.getElementById("carte-liste");
+    const groupes = {};
+    const markers = {};
+
+    sites.forEach(site => {
+      const marker = L.marker([site.latitude, site.longitude], {
+        icon: creerIcone(site.zone)
+      }).addTo(map);
+
+      marker.on("click", () => {
+        map.flyTo([site.latitude, site.longitude], 14, { duration: 0.8 });
+        ouvrirPanel(site.id, marker, site.zone);
+        if (activeBtn) activeBtn.classList.remove("active");
+        const btn = document.querySelector(`[data-site-id="${site.id}"]`);
+        if (btn) { btn.classList.add("active"); activeBtn = btn; }
+      });
+
+      markers[site.id] = { marker, zone: site.zone };
+      if (!groupes[site.zone]) groupes[site.zone] = [];
+      groupes[site.zone].push(site);
+    });
+
+    ["Dakar","Diamniadio","Saly"].forEach(zone => {
+      if (!groupes[zone]) return;
+      const section = document.createElement("div");
+      section.className = "cl-zone";
+      section.innerHTML = `<h3 class="cl-zone-titre cl-${zone.toLowerCase()}">${zone}</h3>`;
+
+      groupes[zone].forEach(site => {
+        const btn = document.createElement("button");
+        btn.className = "cl-site";
+        btn.dataset.siteId = site.id;
+        btn.innerHTML = `
+          <div class="cl-text">
+            <span class="cl-nom">${site.nom}</span>
+            <span class="cl-sport">${site.sport}</span>
+          </div>
+          <span class="cl-arrow">›</span>`;
+        btn.addEventListener("click", () => {
+          map.flyTo([site.latitude, site.longitude], 14, { duration: 0.8 });
+          ouvrirPanel(site.id, markers[site.id].marker, site.zone);
+          if (activeBtn) activeBtn.classList.remove("active");
+          btn.classList.add("active");
+          activeBtn = btn;
+        });
+        section.appendChild(btn);
+      });
+
+      liste.appendChild(section);
+    });
+  });
 </script>
 {% endblock %}

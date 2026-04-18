@@ -3,24 +3,153 @@
 {% block title %}Accueil — JOJ Dakar 2026{% endblock %}
 
 {% block content %}
-<section class="hero">
-    <div class="container hero-inner">
-        <div class="hero-text">
-            <h1 class="hero-title">Dakar <span class="accent">2026</span></h1>
-            <p class="hero-subtitle">Jeux Olympiques de la Jeunesse</p>
-            <p class="hero-dates">31 octobre &mdash; 13 novembre 2026</p>
-            <p class="hero-desc">
-                Pour la première fois de son histoire, l'Afrique accueille les Jeux Olympiques
-                de la Jeunesse. Dakar, Diamniadio et Saly ouvriront leurs portes à des milliers
-                d'athlètes du monde entier, unis par le sport et l'esprit olympique.
-                Une célébration unique au cœur du continent africain.
-            </p>
-        </div>
-        <div class="hero-image">
-            <img src="{{ url_for('static', filename='images/joj1.jpg') }}"
-                 alt="JOJ Dakar 2026"
-                 class="hero-img">
-        </div>
+
+<!-- ── Bannière principale ── -->
+<section class="home-banner">
+  <div class="banner-content container">
+    <div class="banner-text">
+      <p class="banner-pre">Pour la première fois en Afrique</p>
+      <h1 class="banner-title">Jeux Olympiques<br>de la <span class="accent">Jeunesse</span></h1>
+      <p class="banner-dates">31 octobre — 13 novembre 2026</p>
+      <p class="banner-tagline">Dakar accueille &nbsp;·&nbsp; L'Afrique célèbre</p>
+      <a href="{{ url_for('main.programme') }}" class="banner-cta">Voir le programme</a>
     </div>
+    <div class="banner-visual">
+      <div class="banner-img-frame">
+        <img src="{{ url_for('static', filename='images/joj1.jpg') }}"
+             alt="JOJ Dakar 2026" class="banner-img">
+      </div>
+      <div class="banner-ring banner-ring-1"></div>
+      <div class="banner-ring banner-ring-2"></div>
+    </div>
+  </div>
 </section>
+
+<!-- ── Slider zones ── -->
+<section class="zones-section">
+  <div class="container">
+    <h2 class="zones-titre">Les trois <span class="accent">zones</span> de compétition</h2>
+  </div>
+
+  <div class="slider-wrapper">
+    <div class="slider-track" id="sliderTrack">
+
+      {% set meta = [
+        {"couleur": "#00853F", "gradient": "linear-gradient(135deg,#00853F 0%,#005c2b 100%)", "emoji": "🏙️", "tagline": "Le cœur historique"},
+        {"couleur": "#C2410C", "gradient": "linear-gradient(135deg,#C2410C 0%,#7c2a08 100%)", "emoji": "🏗️", "tagline": "La cité du futur"},
+        {"couleur": "#0277bd", "gradient": "linear-gradient(135deg,#0277bd 0%,#01579b 100%)", "emoji": "🌊", "tagline": "La perle de l'Atlantique"}
+      ] %}
+
+      {% for zone in zones %}
+      {% set m = meta[loop.index0] %}
+      <div class="slide" style="background:{{ m.gradient }}">
+        <div class="slide-inner container">
+          <div class="slide-left">
+            <span class="slide-emoji">{{ m.emoji }}</span>
+            <p class="slide-pre">Zone de compétition</p>
+            <h2 class="slide-nom">{{ zone.nom }}</h2>
+            <p class="slide-tagline">{{ m.tagline }}</p>
+            <div class="slide-stats">
+              <div class="stat-pill">
+                <span class="stat-num">{{ zone.nb_sites }}</span>
+                <span class="stat-label">sites</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-num">{{ zone.sports|length }}</span>
+                <span class="stat-label">sports</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div class="slide-sites">
+              <p class="slide-sites-titre">Sites de compétition</p>
+              <ul class="slide-sites-list">
+                {% for nom in zone.noms_sites %}
+                <li>{{ nom }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            <div class="slide-sports">
+              <p class="slide-sports-titre">Sports</p>
+              <div class="slide-sports-tags">
+                {% for sport in zone.sports %}
+                <span class="sport-tag">{{ sport }}</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+
+    <!-- Navigation -->
+    <button class="slider-arrow slider-prev" id="sliderPrev" aria-label="Précédent">&#8592;</button>
+    <button class="slider-arrow slider-next" id="sliderNext" aria-label="Suivant">&#8594;</button>
+
+    <div class="slider-dots" id="sliderDots">
+      {% for zone in zones %}
+      <button class="dot {% if loop.first %}active{% endif %}"
+              data-index="{{ loop.index0 }}"
+              aria-label="{{ zone.nom }}"></button>
+      {% endfor %}
+    </div>
+
+    <div class="slider-labels" id="sliderLabels">
+      {% for zone in zones %}
+      <button class="zone-label {% if loop.first %}active{% endif %}"
+              data-index="{{ loop.index0 }}">{{ zone.nom }}</button>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Liens rapides ── -->
+<section class="home-links container">
+  <a href="{{ url_for('main.sites') }}" class="home-link-card">
+    <span class="hlc-icon">🏟️</span>
+    <span class="hlc-label">Découvrir les sites</span>
+  </a>
+  <a href="{{ url_for('main.programme') }}" class="home-link-card">
+    <span class="hlc-icon">📅</span>
+    <span class="hlc-label">Programme complet</span>
+  </a>
+  <a href="{{ url_for('main.carte') }}" class="home-link-card">
+    <span class="hlc-icon">🗺️</span>
+    <span class="hlc-label">Carte interactive</span>
+  </a>
+  <a href="{{ url_for('main.agenda') }}" class="home-link-card">
+    <span class="hlc-icon">⭐</span>
+    <span class="hlc-label">Mon agenda</span>
+  </a>
+</section>
+
+<script>
+const track  = document.getElementById('sliderTrack');
+const dots   = document.querySelectorAll('.dot');
+const labels = document.querySelectorAll('.zone-label');
+const slides = document.querySelectorAll('.slide');
+let current  = 0;
+let timer;
+
+function goTo(n) {
+  current = (n + slides.length) % slides.length;
+  track.style.transform = `translateX(-${current * 100 / slides.length}%)`;
+  dots.forEach((d, i)   => d.classList.toggle('active', i === current));
+  labels.forEach((l, i) => l.classList.toggle('active', i === current));
+}
+
+function startAuto() {
+  clearInterval(timer);
+  timer = setInterval(() => goTo(current + 1), 5000);
+}
+
+document.getElementById('sliderNext').addEventListener('click', () => { goTo(current + 1); startAuto(); });
+document.getElementById('sliderPrev').addEventListener('click', () => { goTo(current - 1); startAuto(); });
+dots.forEach(d   => d.addEventListener('click', () => { goTo(+d.dataset.index); startAuto(); }));
+labels.forEach(l => l.addEventListener('click', () => { goTo(+l.dataset.index); startAuto(); }));
+
+startAuto();
+</script>
 {% endblock %}

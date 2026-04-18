@@ -9,7 +9,17 @@ ZONES = ["Dakar", "Diamniadio", "Saly"]
 
 @main_bp.route("/")
 def index():
-    return render_template("index.html")
+    zones_data = []
+    for zone in ZONES:
+        sites = Site.query.filter_by(zone=zone).order_by(Site.nom).all()
+        sports = sorted({s.sport for s in sites})
+        zones_data.append({
+            "nom": zone,
+            "nb_sites": len(sites),
+            "sports": sports,
+            "noms_sites": [s.nom for s in sites],
+        })
+    return render_template("index.html", zones=zones_data)
 
 @main_bp.route("/sites")
 def sites():
@@ -74,3 +84,25 @@ def carte():
 def api_sites():
     sites = Site.query.order_by(Site.zone, Site.nom).all()
     return jsonify([s.to_dict() for s in sites])
+
+@main_bp.route("/api/sites/<int:site_id>")
+def api_site_detail(site_id):
+    site = Site.query.get_or_404(site_id)
+    epreuves = (Epreuve.query
+                .filter_by(site_id=site_id)
+                .order_by(Epreuve.date_heure)
+                .all())
+    return jsonify({
+        **site.to_dict(),
+        "epreuves": [
+            {
+                "id":         e.id,
+                "titre":      e.titre,
+                "sport":      e.sport,
+                "phase":      e.phase,
+                "date_heure": e.date_heure.strftime("%d %b · %H:%M"),
+                "jour":       e.date_heure.strftime("%A %d %B").capitalize(),
+            }
+            for e in epreuves
+        ]
+    })
