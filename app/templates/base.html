@@ -14,6 +14,9 @@
                 <span class="header-title">Dakar 2026</span>
             </a>
 
+            <!-- Bouton notifications -->
+            <button class="notif-btn" id="notifBtn" title="Notifications agenda">🔕 Notif</button>
+
             <!-- Hamburger -->
             <button class="nav-burger" id="navBurger" aria-label="Menu">
                 <span></span><span></span><span></span>
@@ -58,19 +61,93 @@
     </footer>
 
     <script>
+    // ── Menu burger ────────────────────────────────
     const burger = document.getElementById('navBurger');
     const nav    = document.getElementById('siteNav');
     burger.addEventListener('click', () => {
         nav.classList.toggle('open');
         burger.classList.toggle('open');
     });
-    // Fermer le menu au clic sur un lien
     nav.querySelectorAll('.nav-link').forEach(l =>
         l.addEventListener('click', () => {
             nav.classList.remove('open');
             burger.classList.remove('open');
         })
     );
+
+    // ── Web Push Notifications ─────────────────────
+    const notifBtn = document.getElementById('notifBtn');
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        if (notifBtn) notifBtn.style.display = 'none';
+    }
+
+    async function getVapidKey() {
+        const r = await fetch('/api/push/vapid-public-key');
+        const d = await r.json();
+        return d.key;
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const raw     = atob(base64);
+        return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+    }
+
+    async function activerNotifications() {
+        try {
+            const reg  = await navigator.serviceWorker.register('/static/sw.js');
+            const perm = await Notification.requestPermission();
+            if (perm !== 'granted') {
+                alert('Les notifications ont été refusées.');
+                return;
+            }
+            const vapidKey = await getVapidKey();
+            if (!vapidKey) { alert('Notifications non configurées.'); return; }
+
+            const sub = await reg.pushManager.subscribe({
+                userVisibleOnly:      true,
+                applicationServerKey: urlBase64ToUint8Array(vapidKey),
+            });
+            await fetch('/api/push/subscribe', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ subscription: sub }),
+            });
+            notifBtn.textContent = '🔔 Activées';
+            notifBtn.classList.add('notif-on');
+        } catch(e) {
+            console.error('Erreur notifications:', e);
+            alert('Impossible d\'activer les notifications.');
+        }
+    }
+
+    async function desactiverNotifications() {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) await sub.unsubscribe();
+        await fetch('/api/push/unsubscribe', { method: 'POST' });
+        notifBtn.textContent = '🔕 Notif';
+        notifBtn.classList.remove('notif-on');
+    }
+
+    if (notifBtn) {
+        // Vérifie l'état actuel
+        navigator.serviceWorker.register('/static/sw.js').then(async reg => {
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) {
+                notifBtn.textContent = '🔔 Activées';
+                notifBtn.classList.add('notif-on');
+            }
+        });
+
+        notifBtn.addEventListener('click', async () => {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) await desactiverNotifications();
+            else     await activerNotifications();
+        });
+    }
     </script>
 </body>
 </html>

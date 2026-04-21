@@ -59,6 +59,18 @@ def agenda_toggle(epreuve_id):
         action = "ajout"
     session.permanent = True
     session["agenda"] = list(agenda)
+
+    # Sync push subscription si l'utilisateur en a une
+    user_token = session.get("user_token")
+    if user_token:
+        from app.models.push_subscription import PushSubscription
+        sub = PushSubscription.query.filter_by(user_token=user_token).first()
+        if sub:
+            import json
+            sub.agenda_ids = json.dumps(list(agenda))
+            from app import db
+            db.session.commit()
+
     return jsonify({"action": action, "total": len(agenda)})
 
 @main_bp.route("/agenda")

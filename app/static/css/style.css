@@ -1460,6 +1460,23 @@ body {
 .agenda-vide-sub  { font-size: 0.95rem; }
 .agenda-vide-sub a { color: var(--green); font-weight: 600; }
 
+/* ── Bouton notifications ── */
+.notif-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    color: #ccc;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.notif-btn:hover    { background: rgba(255,255,255,0.18); color: #fff; }
+.notif-btn.notif-on { background: var(--green); border-color: var(--green); color: #fff; }
+
 /* ════════════════════════════════════════════════
    RESPONSIVE — Hamburger menu
    ════════════════════════════════════════════════ */
