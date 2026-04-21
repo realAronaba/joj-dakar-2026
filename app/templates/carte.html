@@ -166,15 +166,13 @@ function ouvrirPanel(siteId, marker, zone) {
 /* ─── Chatbot Aux alentours ──────────────────────────────────────── */
 const CATEGORIES = {
   restaurant: { label:"Restaurants", emoji:"🍽️",
-    query: (lat,lon) => `node["amenity"="restaurant"](around:1000,${lat},${lon});` },
+    query: (lat,lon) => `node["amenity"="restaurant"](around:1500,${lat},${lon});node["amenity"="fast_food"](around:1500,${lat},${lon});` },
   bar:        { label:"Bars",        emoji:"🍺",
-    query: (lat,lon) => `node["amenity"="bar"](around:1000,${lat},${lon});
-                         node["amenity"="pub"](around:1000,${lat},${lon});` },
-  hôtel:      { label:"Hôtels",     emoji:"🏨",
-    query: (lat,lon) => `node["tourism"="hotel"](around:1000,${lat},${lon});
-                         node["tourism"="guest_house"](around:1000,${lat},${lon});` },
-  café:       { label:"Cafés",      emoji:"☕",
-    query: (lat,lon) => `node["amenity"="cafe"](around:1000,${lat},${lon});` },
+    query: (lat,lon) => `node["amenity"="bar"](around:1500,${lat},${lon});node["amenity"="pub"](around:1500,${lat},${lon});node["amenity"="nightclub"](around:1500,${lat},${lon});` },
+  hôtel:      { label:"Hôtels",      emoji:"🏨",
+    query: (lat,lon) => `node["tourism"="hotel"](around:2000,${lat},${lon});node["tourism"="guest_house"](around:2000,${lat},${lon});node["tourism"="motel"](around:2000,${lat},${lon});` },
+  café:       { label:"Cafés",       emoji:"☕",
+    query: (lat,lon) => `node["amenity"="cafe"](around:1500,${lat},${lon});` },
 };
 
 const MOTS_CLES = {
@@ -235,34 +233,35 @@ async function rechercherPlaces(cat) {
   ajouterLoader();
   try {
     const res = await fetch(url, {
-      method:"POST",
-      body:"data="+encodeURIComponent(overpassQuery)
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "data=" + encodeURIComponent(overpassQuery)
     });
+    if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
     retirerLoader();
 
-    if (!data.elements || data.elements.length === 0) {
-      ajouterMessage(
-        `Aucun(e) ${cfg.label.toLowerCase()} trouvé(e) dans un rayon de 1 km autour du site selon OpenStreetMap. Les données OSM peuvent être incomplètes dans cette zone.`,
-        "bot"
-      );
-      return;
-    }
-
-    // Trier par distance
-    const places = data.elements
+    const places = (data.elements || [])
+      .filter(el => el.tags && el.tags.name && el.lat && el.lon)
       .map(el => ({
-        nom:    el.tags.name || "Sans nom",
-        dist:   haversine(lat, lon, el.lat, el.lon),
-        horaires: el.tags.opening_hours || null,
-        tel:    el.tags.phone || el.tags["contact:phone"] || null,
+        nom:     el.tags.name,
+        dist:    haversine(lat, lon, el.lat, el.lon),
+        horaires:el.tags.opening_hours || null,
+        tel:     el.tags.phone || el.tags["contact:phone"] || null,
         adresse: el.tags["addr:street"]
           ? `${el.tags["addr:housenumber"]||""} ${el.tags["addr:street"]}`.trim()
           : null,
       }))
-      .filter(p => p.nom !== "Sans nom" || true)
       .sort((a,b) => a.dist - b.dist)
       .slice(0, 8);
+
+    if (places.length === 0) {
+      ajouterMessage(
+        `Aucun(e) ${cfg.label.toLowerCase()} répertorié(e) dans un rayon de 1,5 km autour de ce site pour le moment.`,
+        "bot"
+      );
+      return;
+    }
 
     const lignes = places.map(p => `
       <div class="chat-place">
@@ -276,13 +275,13 @@ async function rechercherPlaces(cat) {
       </div>`).join('');
 
     ajouterMessage(
-      `<p class="chat-result-titre">${cfg.emoji} ${cfg.label} à proximité <span class="chat-source">· OpenStreetMap</span></p>${lignes}`,
+      `<p class="chat-result-titre">${cfg.emoji} ${cfg.label} à proximité</p>${lignes}`,
       "bot", true
     );
 
   } catch(e) {
     retirerLoader();
-    ajouterMessage("Impossible de contacter OpenStreetMap. Vérifiez votre connexion.", "bot");
+    ajouterMessage("La recherche a échoué. Vérifiez votre connexion et réessayez.", "bot");
   }
 }
 
@@ -290,15 +289,15 @@ function initChat(site) {
   const box = document.getElementById("chatMessages");
   box.innerHTML = "";
   ajouterMessage(
-    `<p>👋 Bonjour ! Je suis votre assistant local pour <strong>${site.nom}</strong>.</p>
-     <p style="margin-top:.5rem">Je recherche dans un rayon de <strong>1 km</strong> autour du site, en temps réel via <strong>OpenStreetMap</strong> :</p>
+    `<p>👋 Bienvenue aux alentours de <strong>${site.nom}</strong> !</p>
+     <p style="margin-top:.5rem">Je peux vous aider à trouver à proximité du site :</p>
      <ul class="chat-welcome-list">
-       <li>🍽️ Restaurants et lieux pour manger</li>
+       <li>🍽️ Restaurants et fast-foods</li>
        <li>🍺 Bars et pubs</li>
        <li>🏨 Hôtels et hébergements</li>
        <li>☕ Cafés</li>
      </ul>
-     <p style="margin-top:.5rem;font-size:.8rem;color:#aaa">⚠️ Je n'affiche que des données réelles. Si rien n'apparaît, les données OSM peuvent être incomplètes pour cette zone.</p>`,
+     <p style="margin-top:.5rem">Cliquez sur un bouton ou posez votre question.</p>`,
     "bot", true
   );
 }
