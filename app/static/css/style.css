@@ -1025,6 +1025,42 @@ body {
     margin-top: 0.15rem;
 }
 
+.cp-detail a {
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.cp-detail a:hover { text-decoration: underline; }
+
+.cp-tag {
+    display: inline-block;
+    background: #f0f0f0;
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.7rem;
+    color: #555;
+    font-weight: 600;
+    margin-top: 0.2rem;
+}
+
+.cp-maps {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #1a73e8;
+    text-decoration: none;
+    padding: 0.3rem 0.6rem;
+    background: #e8f0fe;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.cp-maps:hover { background: #d2e3fc; }
+
 /* Boutons rapides */
 .chat-quick {
     display: flex;

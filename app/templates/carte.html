@@ -250,14 +250,19 @@ async function rechercherPlaces(cat) {
         const elLat = el.lat  ?? el.center?.lat;
         const elLon = el.lon  ?? el.center?.lon;
         if (!elLat || !elLon) return null;
+        const t = el.tags;
         return {
-          nom:     el.tags.name,
+          nom:     t.name,
           dist:    haversine(lat, lon, elLat, elLon),
-          horaires:el.tags.opening_hours || null,
-          tel:     el.tags.phone || el.tags["contact:phone"] || null,
-          adresse: el.tags["addr:street"]
-            ? `${el.tags["addr:housenumber"]||""} ${el.tags["addr:street"]}`.trim()
-            : null,
+          elLat, elLon,
+          horaires:t.opening_hours || null,
+          tel:     t.phone || t["contact:phone"] || t["contact:mobile"] || null,
+          email:   t.email || t["contact:email"] || null,
+          site:    t.website || t["contact:website"] || t.url || null,
+          cuisine: t.cuisine ? t.cuisine.replace(/;/g, ', ') : null,
+          adresse: t["addr:street"]
+            ? `${t["addr:housenumber"]||""} ${t["addr:street"]}${t["addr:city"] ? ', '+t["addr:city"] : ''}`.trim()
+            : t["addr:full"] || null,
         };
       })
       .filter(Boolean)
@@ -272,16 +277,26 @@ async function rechercherPlaces(cat) {
       return;
     }
 
-    const lignes = places.map(p => `
+    const lignes = places.map(p => {
+      const gmaps = `https://www.google.com/maps?q=${p.elLat},${p.elLon}`;
+      const dist  = p.dist < 1000 ? p.dist+'m' : (p.dist/1000).toFixed(1)+'km';
+      return `
       <div class="chat-place">
         <div class="cp-header">
           <span class="cp-nom">${p.nom}</span>
-          <span class="cp-dist">${p.dist < 1000 ? p.dist+'m' : (p.dist/1000).toFixed(1)+'km'}</span>
+          <span class="cp-dist">${dist}</span>
         </div>
+        ${p.cuisine  ? `<div class="cp-detail cp-tag">🍴 ${p.cuisine}</div>` : ''}
         ${p.adresse  ? `<div class="cp-detail">📍 ${p.adresse}</div>` : ''}
         ${p.horaires ? `<div class="cp-detail">🕐 ${p.horaires}</div>` : ''}
-        ${p.tel      ? `<div class="cp-detail">📞 ${p.tel}</div>` : ''}
-      </div>`).join('');
+        ${p.tel      ? `<div class="cp-detail">📞 <a href="tel:${p.tel}">${p.tel}</a></div>` : ''}
+        ${p.email    ? `<div class="cp-detail">✉️ <a href="mailto:${p.email}">${p.email}</a></div>` : ''}
+        ${p.site     ? `<div class="cp-detail">🌐 <a href="${p.site}" target="_blank" rel="noopener">Site web</a></div>` : ''}
+        <a class="cp-maps" href="${gmaps}" target="_blank" rel="noopener">
+          📌 Voir sur Google Maps
+        </a>
+      </div>`;
+    }).join('');
 
     ajouterMessage(
       `<p class="chat-result-titre">${cfg.emoji} ${cfg.label} à proximité</p>${lignes}`,
