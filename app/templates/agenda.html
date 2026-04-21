@@ -7,10 +7,17 @@
   <div class="container">
 
     <div class="prog-header">
-      <h1>Mon <span class="accent">Agenda</span></h1>
-      {% if total > 0 %}
-      <p class="page-intro">{{ total }} épreuve(s) sélectionnée(s) · triées par date</p>
-      {% endif %}
+      <div class="agenda-top">
+        <div>
+          <h1>Mon <span class="accent">Agenda</span></h1>
+          {% if total > 0 %}
+          <p class="page-intro">{{ total }} épreuve(s) sélectionnée(s) · triées par date</p>
+          {% endif %}
+        </div>
+        <button class="notif-btn" id="notifBtn" title="Recevoir des notifications 2h avant chaque épreuve">
+          🔕 Activer les notifications
+        </button>
+      </div>
     </div>
 
     {% if not jours %}
@@ -64,19 +71,18 @@
 </section>
 
 <script>
+// ── Retrait épreuve ────────────────────────────────────────────────
 document.querySelectorAll('.ep-agenda-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     fetch(`/api/agenda/toggle/${btn.dataset.id}`, { method: 'POST' })
       .then(r => r.json())
       .then(() => {
-        // Retrait : on supprime la carte directement
         const card = btn.closest('.epreuve-card');
         card.style.transition = 'opacity 0.3s';
         card.style.opacity = '0';
         setTimeout(() => {
           card.remove();
-          // Met à jour le badge nav
-          const badge = document.getElementById('agenda-count');
+          const badge   = document.getElementById('agenda-count');
           const restants = document.querySelectorAll('.epreuve-card').length;
           if (badge) {
             badge.textContent = restants;
@@ -87,5 +93,77 @@ document.querySelectorAll('.ep-agenda-btn').forEach(btn => {
       });
   });
 });
+
+// ── Notifications Web Push ─────────────────────────────────────────
+const notifBtn = document.getElementById('notifBtn');
+
+function urlBase64ToUint8Array(b64) {
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function getVapidKey() {
+  const r = await fetch('/api/push/vapid-public-key');
+  const d = await r.json();
+  return d.key;
+}
+
+async function activerNotifications() {
+  try {
+    const reg  = await navigator.serviceWorker.register('/static/sw.js');
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      alert('Notifications refusées. Vérifiez les paramètres de votre navigateur.');
+      return;
+    }
+    const vapidKey = await getVapidKey();
+    if (!vapidKey) { alert('Notifications non disponibles pour le moment.'); return; }
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly:      true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+    await fetch('/api/push/subscribe', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ subscription: sub }),
+    });
+    notifBtn.innerHTML = '🔔 Notifications activées';
+    notifBtn.classList.add('notif-on');
+  } catch(e) {
+    console.error(e);
+    alert("Impossible d'activer les notifications.");
+  }
+}
+
+async function desactiverNotifications() {
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (sub) await sub.unsubscribe();
+  await fetch('/api/push/unsubscribe', { method: 'POST' });
+  notifBtn.innerHTML = '🔕 Activer les notifications';
+  notifBtn.classList.remove('notif-on');
+}
+
+if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+  notifBtn.style.display = 'none';
+} else {
+  // État initial
+  navigator.serviceWorker.register('/static/sw.js').then(async reg => {
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      notifBtn.innerHTML = '🔔 Notifications activées';
+      notifBtn.classList.add('notif-on');
+    }
+  });
+
+  notifBtn.addEventListener('click', async () => {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) await desactiverNotifications();
+    else     await activerNotifications();
+  });
+}
 </script>
 {% endblock %}
