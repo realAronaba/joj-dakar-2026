@@ -13,7 +13,13 @@
                 <span class="header-logo">&#127941;</span>
                 <span class="header-title">Dakar 2026</span>
             </a>
-            <nav class="site-nav">
+
+            <!-- Hamburger -->
+            <button class="nav-burger" id="navBurger" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+
+            <nav class="site-nav" id="siteNav">
                 <a href="{{ url_for('main.index') }}"
                    class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
                     Accueil
@@ -50,5 +56,21 @@
             &copy; 2026 &mdash; L'Afrique accueille, Dakar célèbre
         </div>
     </footer>
+
+    <script>
+    const burger = document.getElementById('navBurger');
+    const nav    = document.getElementById('siteNav');
+    burger.addEventListener('click', () => {
+        nav.classList.toggle('open');
+        burger.classList.toggle('open');
+    });
+    // Fermer le menu au clic sur un lien
+    nav.querySelectorAll('.nav-link').forEach(l =>
+        l.addEventListener('click', () => {
+            nav.classList.remove('open');
+            burger.classList.remove('open');
+        })
+    );
+    </script>
 </body>
 </html>

@@ -150,6 +150,14 @@ document.getElementById('sliderPrev').addEventListener('click', () => { goTo(cur
 dots.forEach(d   => d.addEventListener('click', () => { goTo(+d.dataset.index); startAuto(); }));
 labels.forEach(l => l.addEventListener('click', () => { goTo(+l.dataset.index); startAuto(); }));
 
+// Swipe tactile
+let touchX = 0;
+track.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+track.addEventListener('touchend',   e => {
+  const diff = touchX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 40) { goTo(current + (diff > 0 ? 1 : -1)); startAuto(); }
+});
+
 startAuto();
 </script>
 {% endblock %}
