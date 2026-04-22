@@ -21,10 +21,10 @@ SITES = [
      "capacite": 3000, "latitude": 14.7381, "longitude": -17.5162},
 
     # ── DIAMNIADIO ────────────────────────────────────────────────────
-    {"nom": "Stade du Sénégal", "zone": "Diamniadio",
+    {"nom": "Stade Abdoulaye Wade", "zone": "Diamniadio",
      "sport": "Football / Athlétisme",
      "description": "Stade ultramoderne de 50 000 places construit à Diamniadio, vitrine sportive du Sénégal nouveau.",
-     "capacite": 50000, "latitude": 14.7267, "longitude": -17.2014},
+     "capacite": 50000, "latitude": 14.732753510131223, "longitude": -17.200913242328195},
     {"nom": "Complexe Sportif de Diamniadio", "zone": "Diamniadio",
      "sport": "Boxe / Lutte / Judo",
      "description": "Complexe multi-sports intégré au pôle urbain de Diamniadio, regroupant plusieurs salles de combat.",
@@ -173,6 +173,17 @@ def fix_sites(db):
         piscine.description = "Piscine olympique 50 m au Point E à Dakar, rénovée pour accueillir les épreuves de natation et plongeon des JOJ 2026."
         changed = True
         print("Fix : Piscine Olympique déplacée au Point E, Dakar.")
+
+    # Stade du Sénégal → Stade Abdoulaye Wade
+    stade = Site.query.filter(
+        Site.nom.in_(["Stade du Sénégal", "Stade Abdoulaye Wade"])
+    ).first()
+    if stade and (stade.nom != "Stade Abdoulaye Wade" or abs(stade.latitude - 14.732753510131223) > 0.001):
+        stade.nom       = "Stade Abdoulaye Wade"
+        stade.latitude  = 14.732753510131223
+        stade.longitude = -17.200913242328195
+        changed = True
+        print("Fix : Stade du Sénégal renommé Stade Abdoulaye Wade, coordonnées corrigées.")
 
     if changed:
         db.session.commit()
