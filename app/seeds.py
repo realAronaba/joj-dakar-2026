@@ -7,10 +7,10 @@ SITES = [
      "sport": "Athlétisme / Cérémonie d'ouverture",
      "description": "Stade iconique de Dakar, rénové pour accueillir la cérémonie d'ouverture et les épreuves d'athlétisme des JOJ 2026.",
      "capacite": 60000, "latitude": 14.7232, "longitude": -17.4636},
-    {"nom": "Dakar Arena", "zone": "Dakar",
+    {"nom": "Dakar Arena", "zone": "Diamniadio",
      "sport": "Basketball / Gymnastique",
-     "description": "Grande salle polyvalente de Dakar accueillant le basketball 3x3 et la gymnastique artistique.",
-     "capacite": 15000, "latitude": 14.7284, "longitude": -17.4573},
+     "description": "Grande salle polyvalente de Diamniadio accueillant le basketball 3x3 et la gymnastique artistique.",
+     "capacite": 15000, "latitude": 14.733883498357407, "longitude": -17.21248156380716},
     {"nom": "Plage de Ngor", "zone": "Dakar",
      "sport": "Surf / Triathlon",
      "description": "Plage emblématique de la presqu'île du Cap-Vert, cadre idéal pour le surf et la natation en eau libre.",
@@ -29,10 +29,10 @@ SITES = [
      "sport": "Boxe / Lutte / Judo",
      "description": "Complexe multi-sports intégré au pôle urbain de Diamniadio, regroupant plusieurs salles de combat.",
      "capacite": 8000, "latitude": 14.7240, "longitude": -17.1980},
-    {"nom": "Piscine Olympique de Diamniadio", "zone": "Diamniadio",
+    {"nom": "Piscine Olympique de Dakar", "zone": "Dakar",
      "sport": "Natation / Plongeon",
-     "description": "Infrastructure aquatique aux normes olympiques, première piscine 50 m homologuée FINA au Sénégal.",
-     "capacite": 5000, "latitude": 14.7255, "longitude": -17.2030},
+     "description": "Piscine olympique 50 m au Point E à Dakar, rénovée pour accueillir les épreuves de natation et plongeon des JOJ 2026.",
+     "capacite": 5000, "latitude": 14.696194098675694, "longitude": -17.461359735496124},
     {"nom": "Palais des Sports de Diamniadio", "zone": "Diamniadio",
      "sport": "Handball / Volleyball",
      "description": "Salle couverte dédiée aux sports collectifs en salle, avec tribunes modulables.",
@@ -144,3 +144,35 @@ def seed_all(db):
             ))
     db.session.commit()
     print(f"Seed terminé : {Site.query.count()} sites, {Epreuve.query.count()} épreuves.")
+
+
+def fix_sites(db):
+    """Corrige les données incorrectes déjà en base (migrations légères)."""
+    from app.models.site import Site
+    changed = False
+
+    # Dakar Arena → Diamniadio
+    arena = Site.query.filter_by(nom="Dakar Arena").first()
+    if arena and (arena.zone != "Diamniadio" or abs(arena.longitude - (-17.21248156380716)) > 0.001):
+        arena.zone      = "Diamniadio"
+        arena.latitude  = 14.733883498357407
+        arena.longitude = -17.21248156380716
+        arena.description = "Grande salle polyvalente de Diamniadio accueillant le basketball 3x3 et la gymnastique artistique."
+        changed = True
+        print("Fix : Dakar Arena déplacée à Diamniadio.")
+
+    # Piscine Olympique renommée et déplacée au Point E, Dakar
+    piscine = Site.query.filter(
+        Site.nom.in_(["Piscine Olympique de Diamniadio", "Piscine Olympique de Dakar"])
+    ).first()
+    if piscine and (piscine.zone != "Dakar" or abs(piscine.latitude - 14.696194098675694) > 0.001):
+        piscine.nom         = "Piscine Olympique de Dakar"
+        piscine.zone        = "Dakar"
+        piscine.latitude    = 14.696194098675694
+        piscine.longitude   = -17.461359735496124
+        piscine.description = "Piscine olympique 50 m au Point E à Dakar, rénovée pour accueillir les épreuves de natation et plongeon des JOJ 2026."
+        changed = True
+        print("Fix : Piscine Olympique déplacée au Point E, Dakar.")
+
+    if changed:
+        db.session.commit()

@@ -23,6 +23,8 @@ def create_app():
         if Site.query.count() == 0:
             from app.seeds import seed_all
             seed_all(db)
+        from app.seeds import fix_sites
+        fix_sites(db)
 
     # Token anonyme persistant par utilisateur
     @app.before_request
