@@ -1748,10 +1748,38 @@ body {
 .panel-share-wa:hover { opacity: 0.85; transform: translateY(-1px); }
 
 .panel-itineraire {
-    background: var(--green);
+    background: #1a73e8;
     color: #fff;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
 }
 .panel-share-wa {
     background: #25D366;
     color: #fff;
+}
+
+/* ── Bouton Ma position (flottant sur la carte) ── */
+.btn-position {
+    position: absolute;
+    bottom: 100px;
+    right: 12px;
+    z-index: 999;
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.btn-position:hover {
+    border-color: #1a73e8;
+    box-shadow: 0 3px 12px rgba(26,115,232,0.3);
 }
