@@ -14,7 +14,7 @@
           <p class="page-intro">{{ total }} épreuve(s) sélectionnée(s) · triées par date</p>
           {% endif %}
         </div>
-        <button class="notif-btn" id="notifBtn" title="Recevoir des notifications 2h avant chaque épreuve">
+        <button type="button" class="notif-btn" id="notifBtn" title="Recevoir des notifications 2h avant chaque épreuve">
           🔕 Activer les notifications
         </button>
       </div>
@@ -55,11 +55,18 @@
               {{ e.site.nom }}
             </p>
           </div>
-          <button class="ep-agenda-btn en-agenda"
+          <button type="button" class="ep-agenda-btn en-agenda"
                   data-id="{{ e.id }}"
                   title="Retirer de mon agenda">
             &#9733;
           </button>
+          <button type="button" class="ep-cal-btn"
+                  data-id="{{ e.id }}"
+                  data-titre="{{ e.titre }}"
+                  data-debut="{{ e.date_heure.strftime('%Y%m%dT%H%M%SZ') }}"
+                  data-lieu="{{ e.site.nom }}, {{ e.site.zone }}, Sénégal"
+                  data-desc="Sport : {{ e.sport }} | Phase : {{ e.phase }}"
+                  title="Ajouter au calendrier">📅</button>
         </div>
         {% endfor %}
       </div>
@@ -69,6 +76,13 @@
 
   </div>
 </section>
+
+<!-- Dropdown calendrier -->
+<div id="calDropdown" class="cal-dropdown hidden">
+  <a id="calGoogle"  href="#" target="_blank" rel="noopener">📆 Google Calendar</a>
+  <a id="calApple"   href="#" download>🍎 Apple Calendar (.ics)</a>
+  <a id="calOutlook" href="#" download>📧 Outlook (.ics)</a>
+</div>
 
 <script>
 // ── Retrait épreuve ────────────────────────────────────────────────
@@ -93,6 +107,44 @@ document.querySelectorAll('.ep-agenda-btn').forEach(btn => {
       });
   });
 });
+
+// ── Calendrier ────────────────────────────────────────────────────
+const calDrop = document.getElementById('calDropdown');
+
+function finDate(debut) {
+  const y = debut.slice(0,4), mo = debut.slice(4,6)-1, d = debut.slice(6,8);
+  const h = debut.slice(9,11), mi = debut.slice(11,13), s = debut.slice(13,15);
+  const dt = new Date(Date.UTC(y, mo, d, h, mi, s));
+  dt.setUTCHours(dt.getUTCHours() + 2);
+  return dt.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+}
+
+document.querySelectorAll('.ep-cal-btn').forEach(btn => {
+  btn.addEventListener('click', ev => {
+    ev.stopPropagation();
+    const id    = btn.dataset.id;
+    const titre = btn.dataset.titre;
+    const debut = btn.dataset.debut;
+    const fin   = finDate(debut);
+    const lieu  = btn.dataset.lieu;
+    const desc  = btn.dataset.desc;
+    const icsUrl = `/api/epreuves/${id}/ics`;
+    document.getElementById('calGoogle').href =
+      `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+      `&text=${encodeURIComponent(titre)}` +
+      `&dates=${debut}/${fin}` +
+      `&details=${encodeURIComponent(desc)}` +
+      `&location=${encodeURIComponent(lieu)}`;
+    document.getElementById('calApple').href   = icsUrl;
+    document.getElementById('calOutlook').href = icsUrl;
+    const rect = btn.getBoundingClientRect();
+    calDrop.style.top  = (rect.bottom + 6) + 'px';
+    calDrop.style.left = Math.min(rect.left, window.innerWidth - 210) + 'px';
+    calDrop.classList.toggle('hidden');
+  });
+});
+
+document.addEventListener('click', () => calDrop.classList.add('hidden'));
 
 // ── Notifications Web Push ─────────────────────────────────────────
 const notifBtn = document.getElementById('notifBtn');

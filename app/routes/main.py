@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, jsonify, session
+from datetime import timedelta
+from flask import Blueprint, render_template, jsonify, session, Response
 from app.models.site import Site
 from app.models.epreuve import Epreuve
 from collections import defaultdict
@@ -87,6 +88,34 @@ def agenda():
 
     jours = sorted(par_jour.keys())
     return render_template("agenda.html", par_jour=par_jour, jours=jours, total=len(epreuves))
+
+@main_bp.route("/api/epreuves/<int:epreuve_id>/ics")
+def epreuve_ics(epreuve_id):
+    e    = Epreuve.query.get_or_404(epreuve_id)
+    fmt  = "%Y%m%dT%H%M%SZ"
+    fin  = e.date_heure + timedelta(hours=2)
+    lieu = f"{e.site.nom}, {e.site.zone}, Sénégal"
+    desc = f"Sport: {e.sport}\\nPhase: {e.phase}\\nSite: {e.site.nom}"
+    ics  = (
+        "BEGIN:VCALENDAR\r\n"
+        "VERSION:2.0\r\n"
+        "PRODID:-//JOJ Dakar 2026//FR\r\n"
+        "CALSCALE:GREGORIAN\r\n"
+        "METHOD:PUBLISH\r\n"
+        "BEGIN:VEVENT\r\n"
+        f"DTSTART:{e.date_heure.strftime(fmt)}\r\n"
+        f"DTEND:{fin.strftime(fmt)}\r\n"
+        f"SUMMARY:{e.titre}\r\n"
+        f"DESCRIPTION:{desc}\r\n"
+        f"LOCATION:{lieu}\r\n"
+        "END:VEVENT\r\n"
+        "END:VCALENDAR\r\n"
+    )
+    return Response(
+        ics,
+        mimetype="text/calendar",
+        headers={"Content-Disposition": f'attachment; filename="joj-epreuve-{epreuve_id}.ics"'},
+    )
 
 @main_bp.route("/carte")
 def carte():

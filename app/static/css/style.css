@@ -1666,3 +1666,44 @@ body {
     /* Footer */
     .site-footer { font-size: 0.8rem; padding: 1rem 0; }
 }
+
+/* ── Calendar button & dropdown ── */
+.ep-cal-btn {
+    background: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px 7px;
+    border-radius: 7px;
+    transition: background 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.ep-cal-btn:hover {
+    background: rgba(0,133,63,0.08);
+    border-color: rgba(0,133,63,0.25);
+}
+
+.cal-dropdown {
+    position: fixed;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.14);
+    z-index: 9999;
+    min-width: 195px;
+    overflow: hidden;
+}
+.cal-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 11px 16px;
+    text-decoration: none;
+    color: #222;
+    font-size: 0.875rem;
+    transition: background 0.15s;
+}
+.cal-dropdown a:hover { background: #f0f7f3; }
+.cal-dropdown a + a   { border-top: 1px solid #f0f0f0; }
+.cal-dropdown.hidden  { display: none; }
