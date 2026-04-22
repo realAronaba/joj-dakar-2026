@@ -1,17 +1,25 @@
-"""
-Génère les clés VAPID pour les notifications Web Push.
-Exécuter UNE SEULE FOIS : python generate_vapid.py
-Puis copier les valeurs dans les variables d'environnement Render.
-"""
-from pywebpush import Vapid
+"""Génère les clés VAPID pour les notifications Web Push."""
+import base64
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.serialization import (
+    Encoding, PublicFormat, PrivateFormat, NoEncryption
+)
 
-v = Vapid()
-v.generate_keys()
+private_key = ec.generate_private_key(ec.SECP256R1())
+public_key  = private_key.public_key()
+
+vapid_public  = base64.urlsafe_b64encode(
+    public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)
+).rstrip(b'=').decode()
+
+vapid_private = base64.urlsafe_b64encode(
+    private_key.private_bytes(Encoding.DER, PrivateFormat.PKCS8, NoEncryption())
+).rstrip(b'=').decode()
 
 print("=" * 60)
-print("Copiez ces valeurs dans vos variables d'environnement Render :")
+print("Ajoutez ces 3 variables dans Render > Environment :")
 print("=" * 60)
-print(f"\nVAPID_PUBLIC_KEY={v.public_key_urlsafe_b64}")
-print(f"\nVAPID_PRIVATE_KEY={v.private_key_urlsafe_b64}")
+print(f"\nVAPID_PUBLIC_KEY={vapid_public}")
+print(f"\nVAPID_PRIVATE_KEY={vapid_private}")
 print("\nVAPID_CONTACT=votre@email.com")
 print("=" * 60)
