@@ -20,11 +20,15 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        if Site.query.count() == 0:
-            from app.seeds import seed_all
+        from app.seeds import SITES, seed_all
+        expected = {s["nom"] for s in SITES}
+        actual   = {s.nom for s in Site.query.all()}
+        if not actual or expected != actual:
+            from app.models.epreuve import Epreuve
+            Epreuve.query.delete()
+            Site.query.delete()
+            db.session.commit()
             seed_all(db)
-        from app.seeds import fix_sites
-        fix_sites(db)
 
     # Token anonyme persistant par utilisateur
     @app.before_request
