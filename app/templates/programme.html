@@ -69,6 +69,12 @@
                   data-lieu="{{ e.site.nom }}, {{ e.site.zone }}, Sénégal"
                   data-desc="Sport : {{ e.sport }} | Phase : {{ e.phase }}"
                   title="Ajouter au calendrier">📅</button>
+          <button type="button" class="ep-share-btn"
+                  data-titre="{{ e.titre }}"
+                  data-sport="{{ e.sport }}"
+                  data-date="{{ e.date_heure.strftime('%A %d %B à %H:%M')|capitalize }}"
+                  data-site="{{ e.site.nom }}, {{ e.site.zone }}"
+                  title="Partager sur WhatsApp">📲</button>
         </div>
         {% endfor %}
       </div>
@@ -179,5 +185,18 @@ document.querySelectorAll('.ep-cal-btn').forEach(btn => {
 });
 
 document.addEventListener('click', () => calDrop.classList.add('hidden'));
+
+// ── WhatsApp share ─────────────────────────────────────────────────
+document.querySelectorAll('.ep-share-btn').forEach(btn => {
+  btn.addEventListener('click', ev => {
+    ev.stopPropagation();
+    const msg = `🏅 *JOJ Dakar 2026*\n`
+      + `${btn.dataset.sport} — ${btn.dataset.titre}\n`
+      + `📅 ${btn.dataset.date}\n`
+      + `📍 ${btn.dataset.site}\n`
+      + `#JOJDakar2026`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+  });
+});
 </script>
 {% endblock %}

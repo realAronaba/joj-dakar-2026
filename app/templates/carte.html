@@ -156,6 +156,14 @@ function ouvrirPanel(siteId, marker, zone) {
           <span class="panel-cap">👥 ${data.capacite.toLocaleString('fr-FR')} places</span>
         </div>
         <p class="panel-desc">${data.description}</p>
+        <div class="panel-actions">
+          <a class="panel-itineraire"
+             href="https://www.google.com/maps/dir/?api=1&destination=${data.latitude},${data.longitude}&travelmode=driving"
+             target="_blank" rel="noopener">🧭 Itinéraire</a>
+          <a class="panel-share-wa"
+             href="https://wa.me/?text=${encodeURIComponent('🏅 *JOJ Dakar 2026*\n📍 ' + data.nom + ' (' + data.zone + ')\n🏟️ ' + data.sport + '\n\nVoir sur Google Maps : https://www.google.com/maps?q=' + data.latitude + ',' + data.longitude + '\n#JOJDakar2026')}"
+             target="_blank" rel="noopener">📲 Partager</a>
+        </div>
         <div class="panel-epreuves">
           <p class="panel-epreuves-titre">Programme · <strong>${data.epreuves.length}</strong> épreuve${data.epreuves.length>1?'s':''}</p>
           ${data.epreuves.length ? joursHtml : '<p class="panel-vide">Aucune épreuve programmée.</p>'}
