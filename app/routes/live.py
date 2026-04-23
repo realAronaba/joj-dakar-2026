@@ -1,5 +1,5 @@
-import json
-from flask import Blueprint, request, jsonify, render_template_string, current_app
+import threading
+from flask import Blueprint, request, jsonify, render_template, current_app
 from app import db
 from app.models.info_live import InfoLive, CATEGORIES
 
@@ -12,17 +12,38 @@ live_bp = Blueprint("live", __name__)
 def get_infos():
     since_id = request.args.get("since_id", 0, type=int)
     limit    = request.args.get("limit", 30, type=int)
-    q = InfoLive.query.order_by(InfoLive.created_at.desc())
     if since_id:
-        q = InfoLive.query.filter(InfoLive.id > since_id).order_by(InfoLive.created_at.asc())
-    infos = q.limit(limit).all()
-    return jsonify([i.to_dict() for i in infos])
+        q = (InfoLive.query
+             .filter(InfoLive.id > since_id)
+             .order_by(InfoLive.created_at.asc()))
+    else:
+        q = InfoLive.query.order_by(InfoLive.created_at.desc())
+    return jsonify([i.to_dict() for i in q.limit(limit).all()])
 
 
 @live_bp.route("/api/live/ticker")
 def ticker():
     infos = InfoLive.query.order_by(InfoLive.created_at.desc()).limit(8).all()
     return jsonify([i.to_dict() for i in infos])
+
+
+# ── API : rafraîchissement (public, rate-limité côté fetcher) ─────────────────
+
+@live_bp.route("/api/live/refresh", methods=["POST"])
+def refresh():
+    """
+    Déclenche un import en arrière-plan.
+    Retourne immédiatement {started: true/false} sans attendre la fin.
+    """
+    app = current_app._get_current_object()
+
+    def _run():
+        from app.news_fetcher import importer_si_necessaire
+        importer_si_necessaire(app)
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    return jsonify({"started": True, "total": InfoLive.query.count()})
 
 
 # ── API : publication (admin) ─────────────────────────────────────────────────
@@ -34,9 +55,9 @@ def post_info():
     if not token or auth != token:
         return jsonify({"error": "Non autorisé"}), 403
 
-    data = request.get_json() or {}
-    titre    = (data.get("titre") or "").strip()
-    contenu  = (data.get("contenu") or "").strip()
+    data      = request.get_json() or {}
+    titre     = (data.get("titre") or "").strip()
+    contenu   = (data.get("contenu") or "").strip()
     categorie = data.get("categorie", "annonce")
 
     if not titre or not contenu:
@@ -66,7 +87,14 @@ def delete_info(info_id):
 
 @live_bp.route("/live")
 def page_live():
-    from flask import render_template
+    # Déclenche un import en arrière-plan à chaque ouverture de la page
+    app = current_app._get_current_object()
+
+    def _bg():
+        from app.news_fetcher import importer_si_necessaire
+        importer_si_necessaire(app)
+
+    threading.Thread(target=_bg, daemon=True).start()
     return render_template("live.html", categories=CATEGORIES)
 
 
@@ -76,5 +104,4 @@ def page_admin():
     auth  = request.args.get("token", "")
     if not token or auth != token:
         return "<h2 style='font-family:sans-serif;padding:2rem'>Accès refusé.</h2>", 403
-    from flask import render_template
     return render_template("live_admin.html", categories=CATEGORIES, token=auth)

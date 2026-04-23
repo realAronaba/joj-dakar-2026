@@ -11,7 +11,12 @@
         <h1><span class="live-badge-title">LIVE</span> Infos <span class="accent">en direct</span></h1>
         <p class="page-intro">Actualités des sites, compétitions, travaux et annonces</p>
       </div>
+      <div class="live-status-row">
       <div id="liveStatus" class="live-status">🔴 Connexion…</div>
+      <button type="button" id="btnRefresh" class="btn-live-refresh" title="Actualiser maintenant">
+        ↻ Actualiser
+      </button>
+    </div>
     </div>
 
     <!-- Filtres catégories -->
@@ -130,7 +135,28 @@ document.querySelectorAll('.live-cat-filtres .filtre-btn').forEach(btn => {
   });
 });
 
+// Déclenche un refresh serveur + recharge le fil après 5 s
+async function rafraichir(silencieux = false) {
+  if (!silencieux) {
+    statusEl.textContent = '🔄 Recherche de nouvelles infos…';
+    document.getElementById('btnRefresh').disabled = true;
+  }
+  try {
+    await fetch('/api/live/refresh', { method: 'POST' });
+    // Attendre que l'import (background) se termine
+    await new Promise(r => setTimeout(r, 5000));
+    await chargerInitial();
+  } finally {
+    document.getElementById('btnRefresh').disabled = false;
+  }
+}
+
+document.getElementById('btnRefresh').addEventListener('click', () => rafraichir());
+
+// Au chargement : afficher les articles existants immédiatement,
+// puis déclencher un refresh en arrière-plan
 chargerInitial();
-setInterval(pollNouveaux, 30000);
+rafraichir(true);                    // silencieux : ne touche pas au statut
+setInterval(pollNouveaux, 60000);    // poll toutes les 60 s pour les nouveaux
 </script>
 {% endblock %}

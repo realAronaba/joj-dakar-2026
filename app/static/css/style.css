@@ -1874,6 +1874,13 @@ body {
     50%       { opacity: .5; }
 }
 
+.live-status-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    flex-shrink: 0;
+}
+
 .live-status {
     font-size: .8rem;
     font-weight: 600;
@@ -1881,8 +1888,21 @@ body {
     padding: .3rem .7rem;
     border-radius: 99px;
     background: #f0f0f0;
-    align-self: flex-start;
 }
+
+.btn-live-refresh {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: .35rem .85rem;
+    font-size: .82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+}
+.btn-live-refresh:hover    { background: #006830; }
+.btn-live-refresh:disabled { opacity: .5; cursor: default; }
 
 .live-feed {
     display: flex;

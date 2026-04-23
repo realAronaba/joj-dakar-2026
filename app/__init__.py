@@ -1,5 +1,6 @@
 import uuid
 import logging
+import threading
 from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
@@ -71,13 +72,13 @@ def create_app():
         from app.news_fetcher import importer_actualites
         scheduler.add_job(
             func=importer_actualites, args=[app],
-            trigger="interval", hours=2,
+            trigger="interval", minutes=15,
             id="news_fetch_job", replace_existing=True,
         )
 
         scheduler.start()
-        # Premier import au démarrage
-        importer_actualites(app)
+        # Premier import au démarrage (thread séparé pour ne pas bloquer)
+        threading.Thread(target=importer_actualites, args=[app], daemon=True).start()
         logger.info("Scheduler démarré (push + email).")
     except Exception as e:
         logger.error(f"Scheduler non démarré : {e}")
