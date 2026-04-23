@@ -68,12 +68,16 @@
                   data-debut="{{ e.date_heure.strftime('%Y%m%dT%H%M%SZ') }}"
                   data-lieu="{{ e.site.nom }}, {{ e.site.zone }}, Sénégal"
                   data-desc="Sport : {{ e.sport }} | Phase : {{ e.phase }}"
+                  data-lat="{{ e.site.latitude }}"
+                  data-lon="{{ e.site.longitude }}"
                   title="Ajouter au calendrier">📅</button>
           <button type="button" class="ep-share-btn"
                   data-titre="{{ e.titre }}"
                   data-sport="{{ e.sport }}"
                   data-date="{{ e.date_heure.strftime('%A %d %B à %H:%M')|capitalize }}"
                   data-site="{{ e.site.nom }}, {{ e.site.zone }}"
+                  data-lat="{{ e.site.latitude }}"
+                  data-lon="{{ e.site.longitude }}"
                   title="Partager sur WhatsApp">📲</button>
         </div>
         {% endfor %}
@@ -162,12 +166,16 @@ function finDate(debut) {
 document.querySelectorAll('.ep-cal-btn').forEach(btn => {
   btn.addEventListener('click', ev => {
     ev.stopPropagation();
-    const id    = btn.dataset.id;
-    const titre = btn.dataset.titre;
-    const debut = btn.dataset.debut;
-    const fin   = finDate(debut);
-    const lieu  = btn.dataset.lieu;
-    const desc  = btn.dataset.desc;
+    const id     = btn.dataset.id;
+    const titre  = btn.dataset.titre;
+    const debut  = btn.dataset.debut;
+    const fin    = finDate(debut);
+    const lieu   = btn.dataset.lieu;
+    const lat    = btn.dataset.lat;
+    const lon    = btn.dataset.lon;
+    const gmaps  = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+    const appUrl = `${window.location.origin}/programme`;
+    const desc   = `${btn.dataset.desc}\nItinéraire : ${gmaps}\nProgramme : ${appUrl}`;
     const icsUrl = `/api/epreuves/${id}/ics`;
     document.getElementById('calGoogle').href =
       `https://calendar.google.com/calendar/render?action=TEMPLATE` +
@@ -190,10 +198,14 @@ document.addEventListener('click', () => calDrop.classList.add('hidden'));
 document.querySelectorAll('.ep-share-btn').forEach(btn => {
   btn.addEventListener('click', ev => {
     ev.stopPropagation();
+    const gmaps  = `https://www.google.com/maps/dir/?api=1&destination=${btn.dataset.lat},${btn.dataset.lon}`;
+    const appUrl = `${window.location.origin}/programme`;
     const msg = `🏅 *JOJ Dakar 2026*\n`
       + `${btn.dataset.sport} — ${btn.dataset.titre}\n`
       + `📅 ${btn.dataset.date}\n`
-      + `📍 ${btn.dataset.site}\n`
+      + `📍 ${btn.dataset.site}\n\n`
+      + `🗺️ Itinéraire : ${gmaps}\n`
+      + `📱 Programme : ${appUrl}\n`
       + `#JOJDakar2026`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
   });

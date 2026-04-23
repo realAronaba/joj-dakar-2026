@@ -1,5 +1,5 @@
 from datetime import timedelta
-from flask import Blueprint, render_template, jsonify, session, Response
+from flask import Blueprint, render_template, jsonify, session, Response, request
 from app.models.site import Site
 from app.models.epreuve import Epreuve
 from collections import defaultdict
@@ -91,12 +91,21 @@ def agenda():
 
 @main_bp.route("/api/epreuves/<int:epreuve_id>/ics")
 def epreuve_ics(epreuve_id):
-    e    = Epreuve.query.get_or_404(epreuve_id)
-    fmt  = "%Y%m%dT%H%M%SZ"
-    fin  = e.date_heure + timedelta(hours=2)
-    lieu = f"{e.site.nom}, {e.site.zone}, Sénégal"
-    desc = f"Sport: {e.sport}\\nPhase: {e.phase}\\nSite: {e.site.nom}"
-    ics  = (
+    e       = Epreuve.query.get_or_404(epreuve_id)
+    fmt     = "%Y%m%dT%H%M%SZ"
+    fin     = e.date_heure + timedelta(hours=2)
+    lat, lon = e.site.latitude, e.site.longitude
+    lieu    = f"{e.site.nom}, {e.site.zone}, Sénégal"
+    gmaps   = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}"
+    app_url = request.host_url.rstrip("/") + "/programme"
+    desc    = (
+        f"Sport: {e.sport}\\n"
+        f"Phase: {e.phase}\\n"
+        f"Site: {e.site.nom}\\n"
+        f"Itinéraire: {gmaps}\\n"
+        f"Programme: {app_url}"
+    )
+    ics = (
         "BEGIN:VCALENDAR\r\n"
         "VERSION:2.0\r\n"
         "PRODID:-//JOJ Dakar 2026//FR\r\n"
@@ -108,6 +117,8 @@ def epreuve_ics(epreuve_id):
         f"SUMMARY:{e.titre}\r\n"
         f"DESCRIPTION:{desc}\r\n"
         f"LOCATION:{lieu}\r\n"
+        f"GEO:{lat};{lon}\r\n"
+        f"URL:{gmaps}\r\n"
         "END:VEVENT\r\n"
         "END:VCALENDAR\r\n"
     )
