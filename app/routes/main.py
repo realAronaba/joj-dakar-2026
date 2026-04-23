@@ -61,15 +61,24 @@ def agenda_toggle(epreuve_id):
     session.permanent = True
     session["agenda"] = list(agenda)
 
-    # Sync push subscription si l'utilisateur en a une
+    # Sync subscriptions (push + email) quand l'agenda change
     user_token = session.get("user_token")
     if user_token:
+        import json
+        from app import db
+        agenda_json = json.dumps(list(agenda))
+
         from app.models.push_subscription import PushSubscription
-        sub = PushSubscription.query.filter_by(user_token=user_token).first()
-        if sub:
-            import json
-            sub.agenda_ids = json.dumps(list(agenda))
-            from app import db
+        push_sub = PushSubscription.query.filter_by(user_token=user_token).first()
+        if push_sub:
+            push_sub.agenda_ids = agenda_json
+
+        from app.models.email_subscription import EmailSubscription
+        email_sub = EmailSubscription.query.filter_by(user_token=user_token).first()
+        if email_sub:
+            email_sub.agenda_ids = agenda_json
+
+        if push_sub or email_sub:
             db.session.commit()
 
     return jsonify({"action": action, "total": len(agenda)})

@@ -1783,3 +1783,139 @@ body {
     border-color: #1a73e8;
     box-shadow: 0 3px 12px rgba(26,115,232,0.3);
 }
+
+/* ── Modal alertes email ── */
+.email-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.email-modal-overlay.hidden { display: none; }
+
+.email-modal-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,.18);
+    position: relative;
+    text-align: center;
+}
+
+.email-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #999;
+    line-height: 1;
+}
+.email-modal-close:hover { color: #333; }
+
+.email-modal-icon { font-size: 2.4rem; margin-bottom: .5rem; }
+
+.email-modal-box h2 {
+    font-size: 1.2rem;
+    margin-bottom: .4rem;
+    color: var(--dark);
+}
+
+.email-modal-desc {
+    font-size: .9rem;
+    color: #666;
+    margin-bottom: 1.2rem;
+}
+
+.email-modal-input {
+    width: 100%;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: .65rem 1rem;
+    font-size: 1rem;
+    margin-bottom: .8rem;
+    outline: none;
+    transition: border-color .2s;
+}
+.email-modal-input:focus { border-color: var(--green); }
+
+.email-modal-prefs {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    text-align: left;
+    margin-bottom: 1rem;
+    font-size: .9rem;
+}
+.email-modal-prefs label {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    cursor: pointer;
+}
+
+.btn-email-sub {
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: .75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+}
+.btn-email-sub:hover { background: #006830; }
+
+.email-modal-success {
+    color: var(--green);
+    font-weight: 600;
+    margin-top: .8rem;
+    font-size: .95rem;
+}
+.email-modal-success.hidden { display: none; }
+
+.email-modal-skip {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: .82rem;
+    cursor: pointer;
+    margin-top: .8rem;
+    text-decoration: underline;
+}
+.email-modal-skip:hover { color: #666; }
+
+/* ── Bouton "Gérer mes alertes" sur la page Agenda ── */
+.agenda-actions {
+    display: flex;
+    gap: .6rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.btn-email-gerer {
+    background: #fff;
+    border: 1.5px solid var(--green);
+    color: var(--green);
+    border-radius: 8px;
+    padding: .5rem 1rem;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+}
+.btn-email-gerer:hover {
+    background: var(--green);
+    color: #fff;
+}
+.btn-email-gerer.hidden { display: none; }

@@ -14,9 +14,15 @@
           <p class="page-intro">{{ total }} épreuve(s) sélectionnée(s) · triées par date</p>
           {% endif %}
         </div>
-        <button type="button" class="notif-btn" id="notifBtn" title="Recevoir des notifications 2h avant chaque épreuve">
-          🔕 Activer les notifications
-        </button>
+        <div class="agenda-actions">
+          <button type="button" class="notif-btn" id="notifBtn" title="Recevoir des notifications 2h avant chaque épreuve">
+            🔕 Activer les notifications
+          </button>
+          <button type="button" class="btn-email-gerer hidden" id="btnGererAlertes"
+                  title="Gérer mes alertes email">
+            📧 Gérer mes alertes
+          </button>
+        </div>
       </div>
     </div>
 
@@ -248,5 +254,23 @@ if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     else     await activerNotifications();
   });
 }
+
+// ── Bouton "Gérer mes alertes" ─────────────────────────────────────
+(async () => {
+  try {
+    const r = await fetch('/api/email/status');
+    const d = await r.json();
+    const btn = document.getElementById('btnGererAlertes');
+    if (btn && d.subscribed) {
+      btn.classList.remove('hidden');
+      btn.innerHTML = `📧 Alertes email (${d.email})`;
+    }
+  } catch(e) {}
+})();
+
+document.getElementById('btnGererAlertes')?.addEventListener('click', () => {
+  localStorage.removeItem('emailModalDismissed');
+  window.checkEmailModal?.();
+});
 </script>
 {% endblock %}

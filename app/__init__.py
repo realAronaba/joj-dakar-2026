@@ -14,9 +14,10 @@ def create_app():
 
     db.init_app(app)
 
-    from app.models.site import Site                          # noqa: F401
-    from app.models.epreuve import Epreuve                   # noqa: F401
-    from app.models.push_subscription import PushSubscription # noqa: F401
+    from app.models.site import Site                              # noqa: F401
+    from app.models.epreuve import Epreuve                      # noqa: F401
+    from app.models.push_subscription import PushSubscription   # noqa: F401
+    from app.models.email_subscription import EmailSubscription  # noqa: F401
 
     with app.app_context():
         db.create_all()
@@ -39,26 +40,34 @@ def create_app():
 
     from app.routes.main import main_bp
     from app.routes.push import push_bp
+    from app.routes.email_notif import email_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(push_bp)
+    app.register_blueprint(email_bp)
 
-    # Scheduler de notifications (toutes les 5 min)
-    if Config.VAPID_PRIVATE_KEY:
-        try:
-            from apscheduler.schedulers.background import BackgroundScheduler
+    # Scheduler APScheduler (push + email)
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        scheduler = BackgroundScheduler()
+
+        if Config.VAPID_PRIVATE_KEY:
             from app.notifications import envoyer_notifications
-            scheduler = BackgroundScheduler()
             scheduler.add_job(
-                func     = envoyer_notifications,
-                args     = [app],
-                trigger  = "interval",
-                minutes  = 5,
-                id       = "notif_job",
-                replace_existing = True,
+                func=envoyer_notifications, args=[app],
+                trigger="interval", minutes=5,
+                id="notif_job", replace_existing=True,
             )
-            scheduler.start()
-            logger.info("Scheduler de notifications démarré.")
-        except Exception as e:
-            logger.error(f"Scheduler non démarré : {e}")
+
+        from app.email_alerts import envoyer_alertes_email
+        scheduler.add_job(
+            func=envoyer_alertes_email, args=[app],
+            trigger="interval", minutes=30,
+            id="email_alert_job", replace_existing=True,
+        )
+
+        scheduler.start()
+        logger.info("Scheduler démarré (push + email).")
+    except Exception as e:
+        logger.error(f"Scheduler non démarré : {e}")
 
     return app

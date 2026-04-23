@@ -114,6 +114,8 @@ document.querySelectorAll('.ep-agenda-btn').forEach(btn => {
           badge.textContent = data.total;
           badge.style.display = data.total > 0 ? 'inline' : 'none';
         }
+
+        if (ajout) window.checkEmailModal?.();
       });
   });
 });

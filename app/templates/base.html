@@ -57,6 +57,29 @@
         </div>
     </footer>
 
+    <!-- Modal alertes email ─────────────────────────────────────────── -->
+    <div id="emailModal" class="email-modal-overlay hidden">
+      <div class="email-modal-box">
+        <button type="button" class="email-modal-close" id="emailModalClose" aria-label="Fermer">&times;</button>
+        <div class="email-modal-icon">📬</div>
+        <h2>Alertes par email</h2>
+        <p class="email-modal-desc">Recevez un rappel avant vos épreuves sélectionnées.</p>
+        <form id="emailModalForm" novalidate>
+          <input type="email" id="emailModalInput" class="email-modal-input"
+                 placeholder="votre@email.com" required autocomplete="email">
+          <div class="email-modal-prefs">
+            <label><input type="checkbox" name="veille" checked> La veille au soir</label>
+            <label><input type="checkbox" name="matin"> Le matin même</label>
+          </div>
+          <button type="submit" class="btn-email-sub">M'abonner</button>
+        </form>
+        <p id="emailModalSuccess" class="email-modal-success hidden">
+          ✅ Vérifiez votre boite email pour confirmer l'abonnement.
+        </p>
+        <button type="button" class="email-modal-skip" id="emailModalSkip">Non merci</button>
+      </div>
+    </div>
+
     <script>
     // ── Menu burger ────────────────────────────────
     const burger = document.getElementById('navBurger');
@@ -145,6 +168,69 @@
             else     await activerNotifications();
         });
     }
+
+    // ── Modal alertes email ────────────────────────
+    const emailModal = document.getElementById('emailModal');
+
+    function showEmailModal() {
+        if (!emailModal || localStorage.getItem('emailModalDismissed')) return;
+        emailModal.classList.remove('hidden');
+    }
+    function hideEmailModal() {
+        if (emailModal) emailModal.classList.add('hidden');
+    }
+
+    window.checkEmailModal = async function() {
+        if (localStorage.getItem('emailModalDismissed')) return;
+        try {
+            const r = await fetch('/api/email/status');
+            const d = await r.json();
+            if (!d.subscribed) showEmailModal();
+        } catch(e) {
+            showEmailModal();
+        }
+    };
+
+    document.getElementById('emailModalClose')?.addEventListener('click', () => {
+        hideEmailModal();
+        localStorage.setItem('emailModalDismissed', '1');
+    });
+    document.getElementById('emailModalSkip')?.addEventListener('click', () => {
+        hideEmailModal();
+        localStorage.setItem('emailModalDismissed', '1');
+    });
+    emailModal?.addEventListener('click', e => {
+        if (e.target === emailModal) {
+            hideEmailModal();
+            localStorage.setItem('emailModalDismissed', '1');
+        }
+    });
+
+    document.getElementById('emailModalForm')?.addEventListener('submit', async ev => {
+        ev.preventDefault();
+        const email = document.getElementById('emailModalInput').value.trim();
+        const prefs = {
+            veille: ev.target.querySelector('[name=veille]').checked,
+            matin:  ev.target.querySelector('[name=matin]').checked,
+        };
+        try {
+            const r = await fetch('/api/email/subscribe', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ email, prefs }),
+            });
+            if (r.ok) {
+                document.getElementById('emailModalForm').classList.add('hidden');
+                document.getElementById('emailModalSuccess').classList.remove('hidden');
+                localStorage.setItem('emailModalDismissed', '1');
+                setTimeout(hideEmailModal, 4000);
+            } else {
+                alert('Erreur. Veuillez réessayer.');
+            }
+        } catch(e) {
+            alert('Erreur réseau. Veuillez réessayer.');
+        }
+    });
     </script>
 </body>
 </html>
