@@ -1784,6 +1784,184 @@ body {
     box-shadow: 0 3px 12px rgba(26,115,232,0.3);
 }
 
+/* ── Accès rapides (accueil) ── */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: 2rem auto;
+}
+
+.quick-action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .45rem;
+    background: #fff;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 16px;
+    padding: 1.2rem .75rem;
+    text-decoration: none;
+    color: var(--text);
+    font-size: .85rem;
+    font-weight: 600;
+    transition: border-color .2s, box-shadow .2s, transform .15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.quick-action-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 4px 16px rgba(0,133,63,.12);
+    transform: translateY(-2px);
+}
+.qa-icon { font-size: 1.8rem; }
+.qa-label { text-align: center; }
+
+@media (max-width: 500px) {
+    .quick-actions { grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+    .quick-action-card { padding: .8rem .4rem; font-size: .75rem; }
+    .qa-icon { font-size: 1.4rem; }
+}
+
+/* ── Prochaines épreuves (accueil) ── */
+.prochaines-section {
+    margin: 0 auto 2.5rem;
+}
+
+.prochaines-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.prochaines-titre {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.prochaines-voir-tout {
+    font-size: .85rem;
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+}
+.prochaines-voir-tout:hover { text-decoration: underline; }
+
+.prochaines-liste {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: .85rem;
+}
+
+.prochaine-card {
+    display: flex;
+    gap: .9rem;
+    background: #fff;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    transition: border-color .2s, box-shadow .2s;
+}
+.prochaine-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 4px 16px rgba(0,133,63,.1);
+}
+
+.prochaine-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--green);
+    color: #fff;
+    border-radius: 10px;
+    padding: .4rem .7rem;
+    min-width: 44px;
+    text-align: center;
+}
+.prochaine-jour  { font-size: 1.3rem; font-weight: 700; line-height: 1; }
+.prochaine-mois  { font-size: .68rem; text-transform: uppercase; opacity: .85; }
+
+.prochaine-info { flex: 1; min-width: 0; }
+.prochaine-sport {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+.prochaine-titre {
+    font-size: .9rem;
+    font-weight: 600;
+    margin: .2rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.prochaine-meta {
+    font-size: .78rem;
+    color: #666;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem .6rem;
+    align-items: center;
+}
+
+/* ── Barre de recherche (programme) ── */
+.prog-search {
+    position: relative;
+    margin-bottom: .9rem;
+}
+.prog-search-icon {
+    position: absolute;
+    left: .9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    pointer-events: none;
+}
+.prog-search-input {
+    width: 100%;
+    border: 1.5px solid #ddd;
+    border-radius: 12px;
+    padding: .65rem 1rem .65rem 2.4rem;
+    font-size: .95rem;
+    outline: none;
+    background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+}
+.prog-search-input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(0,133,63,.1);
+}
+
+/* ── Filtre zone (programme) ── */
+.prog-filtres-zone {
+    margin-bottom: .5rem;
+}
+.filtre-zone-btn {
+    background: #fff;
+    border: 1.5px solid #ddd;
+    border-radius: 99px;
+    padding: .35rem .9rem;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+    white-space: nowrap;
+    color: var(--text);
+}
+.filtre-zone-btn:hover  { border-color: var(--green); color: var(--green); }
+.filtre-zone-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+/* ── Suggestion de départ (agenda) ── */
+.ep-depart {
+    font-size: .78rem;
+    color: #555;
+    margin: .25rem 0 0;
+}
+
 /* ── Zone de test notifications ── */
 .test-zone {
     background: #fffbe6;

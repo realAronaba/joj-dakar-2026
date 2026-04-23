@@ -25,6 +25,57 @@
   </div>
 </section>
 
+<!-- ── Accès rapides ── -->
+<section class="quick-actions container">
+  <a href="{{ url_for('main.programme') }}" class="quick-action-card">
+    <span class="qa-icon">📅</span>
+    <span class="qa-label">Programme</span>
+  </a>
+  <a href="{{ url_for('main.sites') }}" class="quick-action-card">
+    <span class="qa-icon">🏟️</span>
+    <span class="qa-label">Sites</span>
+  </a>
+  <a href="{{ url_for('main.carte') }}" class="quick-action-card">
+    <span class="qa-icon">🗺️</span>
+    <span class="qa-label">Carte</span>
+  </a>
+  <a href="{{ url_for('main.agenda') }}" class="quick-action-card">
+    <span class="qa-icon">⭐</span>
+    <span class="qa-label">Mon agenda</span>
+  </a>
+</section>
+
+<!-- ── Prochaines épreuves ── -->
+{% if prochaines %}
+<section class="prochaines-section container">
+  <div class="prochaines-header">
+    <h2 class="prochaines-titre">
+      {% if prochaines[0].date_heure > now_utc %}À venir{% else %}Aujourd'hui{% endif %}
+    </h2>
+    <a href="{{ url_for('main.programme') }}" class="prochaines-voir-tout">Tout voir →</a>
+  </div>
+  <div class="prochaines-liste">
+    {% for e in prochaines %}
+    <div class="prochaine-card">
+      <div class="prochaine-date">
+        <span class="prochaine-jour">{{ e.date_heure.strftime('%d') }}</span>
+        <span class="prochaine-mois">{{ e.date_heure.strftime('%b') }}</span>
+      </div>
+      <div class="prochaine-info">
+        <span class="prochaine-sport">{{ e.sport }}</span>
+        <p class="prochaine-titre">{{ e.titre }}</p>
+        <p class="prochaine-meta">
+          <span>⏰ {{ e.date_heure.strftime('%H:%M') }}</span>
+          <span class="ep-zone zone-{{ e.site.zone|lower }}">{{ e.site.zone }}</span>
+          {{ e.site.nom }}
+        </p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <!-- ── Slider zones ── -->
 <section class="zones-section">
   <div class="container">

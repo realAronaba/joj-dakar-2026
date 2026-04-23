@@ -11,6 +11,22 @@
       <p class="page-intro">31 octobre — 13 novembre 2026 · {{ jours|length }} jours · {{ sports|length }} sports</p>
     </div>
 
+    <!-- Barre de recherche -->
+    <div class="prog-search">
+      <span class="prog-search-icon">🔍</span>
+      <input type="search" id="rechercheInput" class="prog-search-input"
+             placeholder="Rechercher un sport, une épreuve, un site…"
+             autocomplete="off">
+    </div>
+
+    <!-- Filtre zone -->
+    <div class="prog-filtres prog-filtres-zone">
+      <button class="filtre-zone-btn active" data-zone="toutes">Toutes les zones</button>
+      <button class="filtre-zone-btn" data-zone="Dakar">🏙️ Dakar</button>
+      <button class="filtre-zone-btn" data-zone="Diamniadio">🏗️ Diamniadio</button>
+      <button class="filtre-zone-btn" data-zone="Saly">🌊 Saly</button>
+    </div>
+
     <!-- Filtre sport -->
     <div class="prog-filtres">
       <button class="filtre-btn active" data-sport="tous">Tous les sports</button>
@@ -42,7 +58,8 @@
 
       <div class="epreuves-liste">
         {% for e in par_jour[jour] %}
-        <div class="epreuve-card" data-sport="{{ e.sport }}">
+        <div class="epreuve-card" data-sport="{{ e.sport }}" data-zone="{{ e.site.zone }}"
+             data-text="{{ e.sport|lower }} {{ e.titre|lower }} {{ e.site.nom|lower }} {{ e.site.zone|lower }}">
           <div class="ep-heure">{{ e.date_heure.strftime('%H:%M') }}</div>
           <div class="ep-corps">
             <div class="ep-meta">
@@ -130,19 +147,47 @@ jourBtns.forEach(btn => {
     jourPanels.forEach(p => p.classList.add('hidden'));
     btn.classList.add('active');
     document.getElementById('jour-' + btn.dataset.jour).classList.remove('hidden');
-    filtrerSport(); // réappliquer le filtre sport au changement de jour
+    appliquerFiltres();
   });
 });
 
-// ── Filtre sport ──────────────────────────────────────────────────
-const filtreBtns = document.querySelectorAll('.filtre-btn');
-let sportActif = 'tous';
+// ── Filtres : sport + zone + recherche texte ──────────────────────
+const filtreBtns    = document.querySelectorAll('.filtre-btn');
+const filtreZones   = document.querySelectorAll('.filtre-zone-btn');
+const rechercheInput = document.getElementById('rechercheInput');
+let sportActif  = 'tous';
+let zoneActive  = 'toutes';
+let texteSearch = '';
 
-function filtrerSport() {
-  document.querySelectorAll('.jour-content:not(.hidden) .epreuve-card').forEach(card => {
-    const match = sportActif === 'tous' || card.dataset.sport === sportActif;
-    card.style.display = match ? 'flex' : 'none';
+function appliquerFiltres() {
+  const anyFilter = sportActif !== 'tous' || zoneActive !== 'toutes' || texteSearch !== '';
+  const jourActif = document.querySelector('.jour-btn.active')?.dataset.jour;
+
+  // Afficher tous les jours si un filtre texte ou zone est actif, sinon jour sélectionné
+  document.querySelectorAll('.jour-content').forEach(panel => {
+    if (anyFilter) {
+      panel.classList.remove('hidden');
+    } else {
+      panel.classList.toggle('hidden', panel.id !== `jour-${jourActif}`);
+    }
   });
+
+  // Filtrer les cartes
+  document.querySelectorAll('.epreuve-card').forEach(card => {
+    const matchSport = sportActif === 'tous' || card.dataset.sport === sportActif;
+    const matchZone  = zoneActive === 'toutes' || card.dataset.zone === zoneActive;
+    const matchTexte = !texteSearch || card.dataset.text.includes(texteSearch);
+    card.style.display = (matchSport && matchZone && matchTexte) ? 'flex' : 'none';
+  });
+
+  // Si filtre actif, cacher les jours sans résultat
+  if (anyFilter) {
+    document.querySelectorAll('.jour-content').forEach(panel => {
+      const hasVisible = [...panel.querySelectorAll('.epreuve-card')]
+        .some(c => c.style.display !== 'none');
+      panel.classList.toggle('hidden', !hasVisible);
+    });
+  }
 }
 
 filtreBtns.forEach(btn => {
@@ -150,8 +195,22 @@ filtreBtns.forEach(btn => {
     filtreBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     sportActif = btn.dataset.sport;
-    filtrerSport();
+    appliquerFiltres();
   });
+});
+
+filtreZones.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filtreZones.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    zoneActive = btn.dataset.zone;
+    appliquerFiltres();
+  });
+});
+
+rechercheInput.addEventListener('input', () => {
+  texteSearch = rechercheInput.value.toLowerCase().trim();
+  appliquerFiltres();
 });
 
 // ── Calendrier ────────────────────────────────────────────────────

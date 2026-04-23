@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from flask import Blueprint, render_template, jsonify, session, Response, request
 from app.models.site import Site
 from app.models.epreuve import Epreuve
@@ -20,7 +20,19 @@ def index():
             "sports": sports,
             "noms_sites": [s.nom for s in sites],
         })
-    return render_template("index.html", zones=zones_data)
+
+    maintenant = datetime.utcnow()
+    prochaines = (Epreuve.query
+                  .filter(Epreuve.date_heure >= maintenant)
+                  .order_by(Epreuve.date_heure)
+                  .limit(4)
+                  .all())
+    # Si les jeux ne sont pas encore commencés, prendre les 4 premiers
+    if not prochaines:
+        prochaines = Epreuve.query.order_by(Epreuve.date_heure).limit(4).all()
+
+    return render_template("index.html", zones=zones_data, prochaines=prochaines,
+                           now_utc=maintenant)
 
 @main_bp.route("/sites")
 def sites():

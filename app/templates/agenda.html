@@ -46,7 +46,9 @@
 
       <div class="epreuves-liste">
         {% for e in par_jour[jour] %}
-        <div class="epreuve-card">
+        <div class="epreuve-card"
+             data-debut="{{ e.date_heure.strftime('%Y%m%dT%H%M%SZ') }}"
+             data-zone="{{ e.site.zone }}">
           <div class="ep-heure">{{ e.date_heure.strftime('%H:%M') }}</div>
           <div class="ep-corps">
             <div class="ep-meta">
@@ -60,6 +62,7 @@
               <span class="ep-zone zone-{{ e.site.zone|lower }}">{{ e.site.zone }}</span>
               {{ e.site.nom }}
             </p>
+            <p class="ep-depart"></p>
           </div>
           <button type="button" class="ep-agenda-btn en-agenda"
                   data-id="{{ e.id }}"
@@ -117,6 +120,31 @@
 </div>
 
 <script>
+// ── Suggestion de départ ──────────────────────────────────────────
+const BUFFER_MIN = { 'Dakar': 30, 'Diamniadio': 60, 'Saly': 90 };
+
+function afficherDeparts() {
+  document.querySelectorAll('.epreuve-card[data-debut]').forEach(card => {
+    const debutStr = card.dataset.debut;   // ex: 20261031T150000Z
+    const zone     = card.dataset.zone;
+    const buffer   = (BUFFER_MIN[zone] || 45) * 60 * 1000;
+
+    const y  = +debutStr.slice(0, 4),  mo = +debutStr.slice(4, 6) - 1;
+    const d  = +debutStr.slice(6, 8),  h  = +debutStr.slice(9, 11);
+    const mi = +debutStr.slice(11, 13);
+    const eventTime  = new Date(Date.UTC(y, mo, d, h, mi));
+    const departTime = new Date(eventTime.getTime() - buffer);
+
+    const hh = String(departTime.getUTCHours()).padStart(2, '0');
+    const mm = String(departTime.getUTCMinutes()).padStart(2, '0');
+
+    const el = card.querySelector('.ep-depart');
+    if (el) el.textContent = `🚌 Départ conseillé : ${hh}h${mm}`;
+  });
+}
+
+afficherDeparts();
+
 // ── Retrait épreuve ────────────────────────────────────────────────
 document.querySelectorAll('.ep-agenda-btn').forEach(btn => {
   btn.addEventListener('click', () => {
