@@ -32,8 +32,8 @@ SOURCES = [
         "url":  "https://www.aps.sn/feed",
     },
     {
-        "name": "Seneweb",
-        "url":  "https://www.seneweb.com/news/rss/",
+        "name": "RFM Sénégal",
+        "url":  "https://www.rfmsn.com/feed/",
     },
 ]
 
