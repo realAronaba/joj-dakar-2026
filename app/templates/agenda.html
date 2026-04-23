@@ -93,6 +93,22 @@
   </div>
 </section>
 
+<!-- Zone de test notifications -->
+<div id="testZone" class="test-zone hidden">
+  <div class="container">
+    <p class="test-zone-title">🧪 Tester les notifications</p>
+    <div class="test-zone-btns">
+      <button type="button" class="btn-test" id="btnTestPush">
+        🔔 Tester Push
+      </button>
+      <button type="button" class="btn-test" id="btnTestEmail">
+        📧 Tester Email
+      </button>
+    </div>
+    <p id="testFeedback" class="test-feedback"></p>
+  </div>
+</div>
+
 <!-- Dropdown calendrier -->
 <div id="calDropdown" class="cal-dropdown hidden">
   <a id="calGoogle"  href="#" target="_blank" rel="noopener">📆 Google Calendar</a>
@@ -255,7 +271,7 @@ if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
   });
 }
 
-// ── Bouton "Gérer mes alertes" ─────────────────────────────────────
+// ── Bouton "Gérer mes alertes" + zone de test ──────────────────────
 (async () => {
   try {
     const r = await fetch('/api/email/status');
@@ -265,6 +281,12 @@ if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       btn.classList.remove('hidden');
       btn.innerHTML = `📧 Alertes email (${d.email})`;
     }
+    // Afficher la zone de test si push OU email est actif
+    const hasPush = 'serviceWorker' in navigator && 'PushManager' in window &&
+      await navigator.serviceWorker.ready.then(r => r.pushManager.getSubscription()).catch(() => null);
+    if (d.subscribed || hasPush) {
+      document.getElementById('testZone')?.classList.remove('hidden');
+    }
   } catch(e) {}
 })();
 
@@ -272,5 +294,31 @@ document.getElementById('btnGererAlertes')?.addEventListener('click', () => {
   localStorage.removeItem('emailModalDismissed');
   window.checkEmailModal?.();
 });
+
+// ── Boutons de test ─────────────────────────────────────────────────
+async function lancerTest(url, label) {
+  const fb = document.getElementById('testFeedback');
+  fb.textContent = `Envoi ${label} en cours…`;
+  fb.className = 'test-feedback';
+  try {
+    const r = await fetch(url, { method: 'POST' });
+    const d = await r.json();
+    if (r.ok) {
+      fb.textContent = `✅ ${label} envoyé avec succès !`;
+      fb.classList.add('ok');
+    } else {
+      fb.textContent = `❌ ${d.error || 'Erreur inconnue'}`;
+      fb.classList.add('err');
+    }
+  } catch(e) {
+    fb.textContent = `❌ Erreur réseau`;
+    fb.classList.add('err');
+  }
+}
+
+document.getElementById('btnTestPush')?.addEventListener('click',
+  () => lancerTest('/api/test/push', 'notification push'));
+document.getElementById('btnTestEmail')?.addEventListener('click',
+  () => lancerTest('/api/test/email', 'email test'));
 </script>
 {% endblock %}

@@ -219,3 +219,42 @@ def status():
     if sub and sub.confirmed:
         return jsonify({"subscribed": True, "email": sub.email})
     return jsonify({"subscribed": False})
+
+
+@email_bp.route("/api/test/email", methods=["POST"])
+def test_email():
+    user_token = session.get("user_token")
+    sub = EmailSubscription.query.filter_by(user_token=user_token, confirmed=True).first()
+    if not sub:
+        return jsonify({"error": "Aucun abonnement email confirmé. Abonnez-vous et confirmez d'abord."}), 404
+
+    app_url = url_for("main.agenda", _external=True)
+    html = (
+        '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"></head>'
+        '<body style="font-family:Arial,sans-serif;background:#f4f4f0;margin:0;padding:20px">'
+        '<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;'
+        'box-shadow:0 4px 20px rgba(0,0,0,.08)">'
+        '<div style="background:#00853F;padding:24px;text-align:center">'
+        '<p style="margin:0;font-size:2rem">🏅</p>'
+        '<h1 style="color:#fff;margin:6px 0 4px;font-size:1.3rem">JOJ Dakar 2026</h1>'
+        '<p style="color:#FDEF42;margin:0;font-size:.9rem">Test d\'alerte email</p>'
+        '</div>'
+        '<div style="padding:28px;text-align:center">'
+        '<p style="font-size:2rem">✅</p>'
+        '<h2 style="margin:.4rem 0">Les alertes email fonctionnent !</h2>'
+        f'<p style="color:#555">Cet email a été envoyé à <strong>{sub.email}</strong>.<br>'
+        'Vous recevrez vos rappels d\'épreuves selon vos préférences.</p>'
+        f'<a href="{app_url}" style="display:inline-block;margin-top:20px;background:#00853F;'
+        'color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">'
+        '📅 Mon agenda</a>'
+        '</div></div></body></html>'
+    )
+    ok = _send_email(
+        sub.email,
+        "✅ Test alertes — JOJ Dakar 2026",
+        html,
+        current_app._get_current_object(),
+    )
+    if ok:
+        return jsonify({"ok": True})
+    return jsonify({"error": "Échec d'envoi. Vérifiez MAIL_SERVER et MAIL_USERNAME sur Render."}), 503

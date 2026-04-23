@@ -1784,6 +1784,52 @@ body {
     box-shadow: 0 3px 12px rgba(26,115,232,0.3);
 }
 
+/* ── Zone de test notifications ── */
+.test-zone {
+    background: #fffbe6;
+    border-top: 2px dashed #f0c040;
+    padding: 1rem 0;
+    text-align: center;
+}
+.test-zone.hidden { display: none; }
+
+.test-zone-title {
+    font-size: .85rem;
+    font-weight: 700;
+    color: #7a5f00;
+    margin-bottom: .6rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.test-zone-btns {
+    display: flex;
+    gap: .6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: .5rem;
+}
+
+.btn-test {
+    background: #fff;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    padding: .45rem 1rem;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+}
+.btn-test:hover { border-color: var(--green); background: #f0fff6; }
+
+.test-feedback {
+    font-size: .85rem;
+    min-height: 1.2em;
+    color: #555;
+}
+.test-feedback.ok  { color: #00853F; font-weight: 600; }
+.test-feedback.err { color: #c00;    font-weight: 600; }
+
 /* ── Modal alertes email ── */
 .email-modal-overlay {
     position: fixed;
