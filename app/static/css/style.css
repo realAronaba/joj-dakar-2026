@@ -1961,6 +1961,16 @@ body {
     line-height: 1.6;
 }
 
+.live-card-source {
+    display: inline-block;
+    margin-top: .6rem;
+    font-size: .78rem;
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+}
+.live-card-source:hover { text-decoration: underline; }
+
 /* ── Admin live ── */
 .live-admin-form {
     background: #fff;

@@ -68,7 +68,16 @@ def create_app():
             id="email_alert_job", replace_existing=True,
         )
 
+        from app.news_fetcher import importer_actualites
+        scheduler.add_job(
+            func=importer_actualites, args=[app],
+            trigger="interval", hours=2,
+            id="news_fetch_job", replace_existing=True,
+        )
+
         scheduler.start()
+        # Premier import au démarrage
+        importer_actualites(app)
         logger.info("Scheduler démarré (push + email).")
     except Exception as e:
         logger.error(f"Scheduler non démarré : {e}")

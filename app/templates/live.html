@@ -16,9 +16,9 @@
 
     <!-- Filtres catégories -->
     <div class="prog-filtres live-cat-filtres">
-      <button class="filtre-btn active" data-cat="toutes">Toutes</button>
+      <button type="button" class="filtre-btn active" data-cat="toutes">Toutes</button>
       {% for key, cat in categories.items() %}
-      <button class="filtre-btn" data-cat="{{ key }}">{{ cat.emoji }} {{ cat.label }}</button>
+      <button type="button" class="filtre-btn" data-cat="{{ key }}">{{ cat.emoji }} {{ cat.label }}</button>
       {% endfor %}
     </div>
 
@@ -65,6 +65,7 @@ function buildCard(info, prepend = false) {
     </div>
     <h3 class="live-card-titre">${info.titre}</h3>
     <p class="live-card-contenu">${info.contenu.replace(/\n/g, '<br>')}</p>
+    ${info.source_url ? `<a href="${info.source_url}" target="_blank" rel="noopener" class="live-card-source">Lire l'article →</a>` : ''}
   `;
   if (prepend) {
     card.classList.add('live-card-new');
