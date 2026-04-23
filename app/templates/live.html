@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Infos Live — JOJ Dakar 2026{% endblock %}
+
+{% block content %}
+<section class="page-programme">
+  <div class="container">
+
+    <div class="live-page-header">
+      <div>
+        <h1><span class="live-badge-title">LIVE</span> Infos <span class="accent">en direct</span></h1>
+        <p class="page-intro">Actualités des sites, compétitions, travaux et annonces</p>
+      </div>
+      <div id="liveStatus" class="live-status">🔴 Connexion…</div>
+    </div>
+
+    <!-- Filtres catégories -->
+    <div class="prog-filtres live-cat-filtres">
+      <button class="filtre-btn active" data-cat="toutes">Toutes</button>
+      {% for key, cat in categories.items() %}
+      <button class="filtre-btn" data-cat="{{ key }}">{{ cat.emoji }} {{ cat.label }}</button>
+      {% endfor %}
+    </div>
+
+    <!-- Fil d'infos -->
+    <div id="liveFeed" class="live-feed">
+      <div class="live-loader">Chargement du fil…</div>
+    </div>
+
+    <div id="liveEmpty" class="live-empty hidden">
+      <p>📭 Aucune information disponible pour le moment.</p>
+    </div>
+
+  </div>
+</section>
+
+<script>
+const feed      = document.getElementById('liveFeed');
+const liveEmpty = document.getElementById('liveEmpty');
+const statusEl  = document.getElementById('liveStatus');
+let lastId      = 0;
+let catActive   = 'toutes';
+
+const CAT_COLORS = {
+  competition: '#00853F',
+  site:        '#0277bd',
+  travaux:     '#C2410C',
+  annonce:     '#7c3aed',
+  meteo:       '#0891b2',
+  programme:   '#b45309',
+};
+
+function buildCard(info, prepend = false) {
+  const color = CAT_COLORS[info.categorie] || '#555';
+  const card  = document.createElement('div');
+  card.className = 'live-card';
+  card.dataset.cat = info.categorie;
+  card.dataset.id  = info.id;
+  card.innerHTML = `
+    <div class="live-card-head">
+      <span class="live-cat-badge" style="background:${color}22;color:${color}">
+        ${info.cat_emoji} ${info.cat_label}
+      </span>
+      <span class="live-card-age">${info.age}</span>
+    </div>
+    <h3 class="live-card-titre">${info.titre}</h3>
+    <p class="live-card-contenu">${info.contenu.replace(/\n/g, '<br>')}</p>
+  `;
+  if (prepend) {
+    card.classList.add('live-card-new');
+    feed.prepend(card);
+    setTimeout(() => card.classList.remove('live-card-new'), 2000);
+  } else {
+    feed.appendChild(card);
+  }
+  return card;
+}
+
+function appliquerFiltreCat() {
+  document.querySelectorAll('.live-card').forEach(card => {
+    card.style.display = (catActive === 'toutes' || card.dataset.cat === catActive) ? 'block' : 'none';
+  });
+  liveEmpty.classList.toggle('hidden',
+    [...document.querySelectorAll('.live-card')].some(c => c.style.display !== 'none'));
+}
+
+async function chargerInitial() {
+  try {
+    const r = await fetch('/api/live/infos?limit=30');
+    const infos = await r.json();
+    feed.innerHTML = '';
+    if (infos.length === 0) {
+      liveEmpty.classList.remove('hidden');
+    } else {
+      infos.forEach(info => buildCard(info));
+      lastId = infos[0].id;
+    }
+    statusEl.textContent = '🟢 En direct';
+    appliquerFiltreCat();
+  } catch(e) {
+    statusEl.textContent = '🔴 Erreur de connexion';
+  }
+}
+
+async function pollNouveaux() {
+  if (!lastId) return;
+  try {
+    const r = await fetch(`/api/live/infos?since_id=${lastId}`);
+    const infos = await r.json();
+    infos.forEach(info => {
+      buildCard(info, true);
+      lastId = Math.max(lastId, info.id);
+    });
+    if (infos.length > 0) {
+      appliquerFiltreCat();
+      statusEl.textContent = `🟢 Mis à jour`;
+      setTimeout(() => statusEl.textContent = '🟢 En direct', 3000);
+    }
+  } catch(e) {}
+}
+
+// Filtres catégories
+document.querySelectorAll('.live-cat-filtres .filtre-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.live-cat-filtres .filtre-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    catActive = btn.dataset.cat;
+    appliquerFiltreCat();
+  });
+});
+
+chargerInitial();
+setInterval(pollNouveaux, 30000);
+</script>
+{% endblock %}

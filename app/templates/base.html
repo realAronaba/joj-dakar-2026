@@ -43,9 +43,21 @@
                     <span id="agenda-count"
                           style="display:{{ 'inline' if nb > 0 else 'none' }}">{{ nb }}</span>
                 </a>
+                <a href="{{ url_for('live.page_live') }}"
+                   class="nav-link nav-live {% if request.endpoint == 'live.page_live' %}active{% endif %}">
+                    🔴 Live
+                </a>
             </nav>
         </div>
     </header>
+
+    <!-- Ticker live -->
+    <div id="liveTicker" class="live-ticker hidden">
+      <span class="ticker-label">🔴 LIVE</span>
+      <div class="ticker-track-wrap">
+        <div class="ticker-track" id="tickerTrack"></div>
+      </div>
+    </div>
 
     <main class="main-content">
         {% block content %}{% endblock %}
@@ -168,6 +180,21 @@
             else     await activerNotifications();
         });
     }
+
+    // ── Ticker live ────────────────────────────────
+    (async function initTicker() {
+        try {
+            const r     = await fetch('/api/live/ticker');
+            const infos = await r.json();
+            if (!infos.length) return;
+            const ticker = document.getElementById('liveTicker');
+            const track  = document.getElementById('tickerTrack');
+            const items  = infos.map(i => `${i.cat_emoji} <strong>${i.titre}</strong> — ${i.contenu.slice(0, 80)}${i.contenu.length > 80 ? '…' : ''}`);
+            // Dupliquer pour loop sans coupure
+            track.innerHTML = [...items, ...items].map(t => `<span class="ticker-item">${t}</span>`).join('');
+            ticker.classList.remove('hidden');
+        } catch(e) {}
+    })();
 
     // ── Modal alertes email ────────────────────────
     const emailModal = document.getElementById('emailModal');

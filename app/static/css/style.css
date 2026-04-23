@@ -1784,6 +1784,236 @@ body {
     box-shadow: 0 3px 12px rgba(26,115,232,0.3);
 }
 
+/* ── Nav Live ── */
+.nav-live {
+    color: #E31B23 !important;
+    font-weight: 700;
+}
+.nav-live.active, .nav-live:hover { opacity: .8; }
+
+/* ── Ticker live ── */
+.live-ticker {
+    background: var(--dark);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    height: 34px;
+    overflow: hidden;
+    font-size: .8rem;
+}
+.live-ticker.hidden { display: none; }
+
+.ticker-label {
+    flex-shrink: 0;
+    background: #E31B23;
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    padding: 0 .9rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.ticker-track-wrap {
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.ticker-track {
+    display: flex;
+    gap: 0;
+    white-space: nowrap;
+    animation: ticker-scroll 60s linear infinite;
+    will-change: transform;
+}
+.ticker-track:hover { animation-play-state: paused; }
+
+.ticker-item {
+    padding: 0 2.5rem;
+    border-right: 1px solid rgba(255,255,255,.15);
+    flex-shrink: 0;
+}
+.ticker-item strong { color: var(--yellow); }
+
+@keyframes ticker-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* ── Page Live ── */
+.live-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.live-badge-title {
+    display: inline-block;
+    background: #E31B23;
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    padding: .15rem .5rem;
+    border-radius: 6px;
+    vertical-align: middle;
+    margin-right: .3rem;
+    animation: pulse-live 1.8s ease-in-out infinite;
+    will-change: opacity;
+}
+
+@keyframes pulse-live {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .5; }
+}
+
+.live-status {
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: .3rem .7rem;
+    border-radius: 99px;
+    background: #f0f0f0;
+    align-self: flex-start;
+}
+
+.live-feed {
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+    margin-top: 1.2rem;
+}
+
+.live-loader {
+    color: #999;
+    text-align: center;
+    padding: 2rem;
+    font-size: .9rem;
+}
+
+.live-empty {
+    text-align: center;
+    padding: 3rem;
+    color: #aaa;
+    font-size: .95rem;
+}
+.live-empty.hidden { display: none; }
+
+.live-card {
+    background: #fff;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 14px;
+    padding: 1.1rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    transition: box-shadow .2s;
+}
+.live-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+
+.live-card-new {
+    animation: slide-in 0.5s ease;
+    border-color: var(--green);
+    will-change: opacity, transform;
+}
+
+@keyframes slide-in {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.live-card-head {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .5rem;
+    flex-wrap: wrap;
+}
+
+.live-cat-badge {
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .2rem .6rem;
+    border-radius: 99px;
+}
+
+.live-card-age {
+    font-size: .75rem;
+    color: #999;
+    margin-left: auto;
+}
+
+.live-card-titre {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: .35rem;
+    color: var(--dark);
+}
+
+.live-card-contenu {
+    font-size: .88rem;
+    color: #444;
+    line-height: 1.6;
+}
+
+/* ── Admin live ── */
+.live-admin-form {
+    background: #fff;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+
+.live-admin-field { display: flex; flex-direction: column; gap: .35rem; }
+.live-admin-field label { font-size: .83rem; font-weight: 600; color: #555; }
+
+.live-admin-input, .live-admin-select, .live-admin-textarea {
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    padding: .6rem .9rem;
+    font-size: .95rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s;
+}
+.live-admin-input:focus,
+.live-admin-select:focus,
+.live-admin-textarea:focus { border-color: var(--green); }
+
+.live-admin-textarea { resize: vertical; }
+
+.live-admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.live-admin-feedback {
+    font-size: .88rem;
+    font-weight: 600;
+}
+
+.btn-suppr {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: .3rem;
+    border-radius: 6px;
+    flex-shrink: 0;
+    transition: background .15s;
+}
+.btn-suppr:hover { background: #fee2e2; }
+
 /* ── Accès rapides (accueil) ── */
 .quick-actions {
     display: grid;

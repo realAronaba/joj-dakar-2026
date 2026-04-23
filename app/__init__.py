@@ -18,6 +18,7 @@ def create_app():
     from app.models.epreuve import Epreuve                      # noqa: F401
     from app.models.push_subscription import PushSubscription   # noqa: F401
     from app.models.email_subscription import EmailSubscription  # noqa: F401
+    from app.models.info_live import InfoLive                    # noqa: F401
 
     with app.app_context():
         db.create_all()
@@ -41,9 +42,11 @@ def create_app():
     from app.routes.main import main_bp
     from app.routes.push import push_bp
     from app.routes.email_notif import email_bp
+    from app.routes.live import live_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(push_bp)
     app.register_blueprint(email_bp)
+    app.register_blueprint(live_bp)
 
     # Scheduler APScheduler (push + email)
     try:

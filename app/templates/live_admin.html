@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Admin Live — JOJ Dakar 2026{% endblock %}
+
+{% block content %}
+<section class="page-programme">
+  <div class="container" style="max-width:680px">
+
+    <div class="prog-header">
+      <h1>📡 Publication <span class="accent">Live</span></h1>
+      <p class="page-intro">Panneau d'administration — infos en direct</p>
+    </div>
+
+    <form id="adminForm" class="live-admin-form">
+      <input type="hidden" id="adminToken" value="{{ token }}">
+
+      <div class="live-admin-field">
+        <label>Catégorie</label>
+        <select id="adminCat" class="live-admin-select">
+          {% for key, cat in categories.items() %}
+          <option value="{{ key }}">{{ cat.emoji }} {{ cat.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="live-admin-field">
+        <label>Titre</label>
+        <input type="text" id="adminTitre" class="live-admin-input"
+               placeholder="Ex : Cérémonie d'ouverture confirmée" maxlength="200">
+      </div>
+
+      <div class="live-admin-field">
+        <label>Contenu</label>
+        <textarea id="adminContenu" class="live-admin-textarea" rows="4"
+                  placeholder="Détails de l'information…"></textarea>
+      </div>
+
+      <div class="live-admin-actions">
+        <button type="submit" class="btn-email-sub">📡 Publier</button>
+        <span id="adminFeedback" class="live-admin-feedback"></span>
+      </div>
+    </form>
+
+    <h2 style="margin-top:2rem;font-size:1.1rem">Infos publiées</h2>
+    <div id="adminFeed" class="live-feed" style="margin-top:1rem"></div>
+
+  </div>
+</section>
+
+<script>
+const token = document.getElementById('adminToken').value;
+
+async function charger() {
+  const r     = await fetch('/api/live/infos?limit=50');
+  const infos = await r.json();
+  const feed  = document.getElementById('adminFeed');
+  feed.innerHTML = '';
+  if (!infos.length) { feed.innerHTML = '<p style="color:#999">Aucune info publiée.</p>'; return; }
+  infos.forEach(info => {
+    const d = document.createElement('div');
+    d.className = 'live-card';
+    d.style.display = 'flex';
+    d.style.justifyContent = 'space-between';
+    d.style.alignItems = 'flex-start';
+    d.style.gap = '.8rem';
+    d.innerHTML = `
+      <div>
+        <div class="live-card-head">
+          <span class="live-cat-badge">${info.cat_emoji} ${info.cat_label}</span>
+          <span class="live-card-age">${info.created_at}</span>
+        </div>
+        <h3 class="live-card-titre">${info.titre}</h3>
+        <p class="live-card-contenu">${info.contenu.replace(/\n/g,'<br>')}</p>
+      </div>
+      <button class="btn-suppr" data-id="${info.id}" title="Supprimer">🗑️</button>
+    `;
+    feed.appendChild(d);
+  });
+
+  document.querySelectorAll('.btn-suppr').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Supprimer cette info ?')) return;
+      await fetch(`/api/live/infos/${btn.dataset.id}?token=${token}`, { method: 'DELETE' });
+      charger();
+    });
+  });
+}
+
+document.getElementById('adminForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const fb      = document.getElementById('adminFeedback');
+  const titre   = document.getElementById('adminTitre').value.trim();
+  const contenu = document.getElementById('adminContenu').value.trim();
+  const cat     = document.getElementById('adminCat').value;
+  if (!titre || !contenu) { fb.textContent = '⚠️ Titre et contenu requis'; return; }
+
+  const r = await fetch('/api/live/infos', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': token },
+    body:    JSON.stringify({ titre, contenu, categorie: cat }),
+  });
+  if (r.ok) {
+    fb.textContent = '✅ Publié !';
+    document.getElementById('adminTitre').value   = '';
+    document.getElementById('adminContenu').value = '';
+    charger();
+    setTimeout(() => fb.textContent = '', 3000);
+  } else {
+    const d = await r.json();
+    fb.textContent = '❌ ' + (d.error || 'Erreur');
+  }
+});
+
+charger();
+</script>
+{% endblock %}
