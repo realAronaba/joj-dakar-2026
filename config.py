@@ -22,4 +22,4 @@ class Config:
     MAIL_PORT     = int(os.getenv("MAIL_PORT", "587"))
     MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
-    MAIL_SENDER   = os.getenv("MAIL_SENDER",   "JOJ Dakar 2026 <noreply@joj-dakar.sn>")
+    MAIL_SENDER   = os.getenv("MAIL_SENDER",   "JOJ Dakar 2026 <infosdakar2026@gmail.com>")
