@@ -3,8 +3,8 @@ self.addEventListener('push', event => {
     const title   = data.title || 'JOJ Dakar 2026';
     const options = {
         body:             data.body || '',
-        icon:             '/static/images/joj1.jpg',
-        badge:            '/static/images/joj1.jpg',
+        icon:             '/static/images/Dakar_2026_Logo.png',
+        badge:            '/static/images/Dakar_2026_Logo.png',
         data:             { url: data.url || '/agenda' },
         vibrate:          [200, 100, 200],
         requireInteraction: true,

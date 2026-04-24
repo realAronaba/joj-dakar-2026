@@ -1,8 +1,9 @@
 import uuid
 import logging
 import threading
-from flask import Flask, session
+from flask import Flask, session, request, redirect
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 
 db = SQLAlchemy()
@@ -12,6 +13,9 @@ logger = logging.getLogger(__name__)
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # Permet à Flask de voir le vrai protocole (https) derrière Render/Nginx
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     db.init_app(app)
 
@@ -32,6 +36,22 @@ def create_app():
             Site.query.delete()
             db.session.commit()
             seed_all(db)
+
+    # Redirection HTTP → HTTPS en production
+    @app.before_request
+    def forcer_https():
+        if not app.debug and request.headers.get("X-Forwarded-Proto", "https") == "http":
+            return redirect(request.url.replace("http://", "https://", 1), code=301)
+
+    # Headers de sécurité HTTPS
+    @app.after_request
+    def ajouter_headers_securite(response):
+        if not app.debug:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            response.headers["X-Content-Type-Options"]    = "nosniff"
+            response.headers["X-Frame-Options"]           = "SAMEORIGIN"
+            response.headers["Referrer-Policy"]           = "strict-origin-when-cross-origin"
+        return response
 
     # Token anonyme persistant par utilisateur
     @app.before_request
