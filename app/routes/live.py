@@ -50,8 +50,8 @@ def refresh():
     app = current_app._get_current_object()
 
     def _run():
-        from app.news_fetcher import importer_actualites
-        importer_actualites(app)
+        from app.news_fetcher import importer_tout
+        importer_tout(app)
 
     t = threading.Thread(target=_run, daemon=True)
     t.start()

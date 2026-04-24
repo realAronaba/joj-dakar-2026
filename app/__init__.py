@@ -69,11 +69,18 @@ def create_app():
             id="email_alert_job", replace_existing=True,
         )
 
-        from app.news_fetcher import importer_actualites
+        from app.news_fetcher import importer_actualites, importer_depuis_apis
+        # RSS toutes les 15 min
         scheduler.add_job(
             func=importer_actualites, args=[app],
             trigger="interval", minutes=15,
-            id="news_fetch_job", replace_existing=True,
+            id="news_rss_job", replace_existing=True,
+        )
+        # APIs (Guardian + NewsAPI) toutes les 2h
+        scheduler.add_job(
+            func=importer_depuis_apis, args=[app],
+            trigger="interval", hours=2,
+            id="news_api_job", replace_existing=True,
         )
 
         from app.weather_fetcher import mettre_a_jour_meteo
@@ -84,10 +91,11 @@ def create_app():
         )
 
         scheduler.start()
-        # Imports au démarrage (threads séparés pour ne pas bloquer)
-        threading.Thread(target=importer_actualites, args=[app], daemon=True).start()
+        # Import complet au démarrage (thread séparé)
+        from app.news_fetcher import importer_tout
+        threading.Thread(target=importer_tout, args=[app], daemon=True).start()
         threading.Thread(target=mettre_a_jour_meteo, args=[app], daemon=True).start()
-        logger.info("Scheduler démarré (push + email + météo).")
+        logger.info("Scheduler démarré (RSS 15min + APIs 2h + météo 3h).")
     except Exception as e:
         logger.error(f"Scheduler non démarré : {e}")
 
