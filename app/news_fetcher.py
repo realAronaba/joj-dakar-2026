@@ -32,7 +32,10 @@ SOURCES_RSS = [
     {"name": "Leral.net",    "url": "https://www.leral.net/feed/"},
     {"name": "DakarActu",    "url": "https://www.dakaractu.com/feed/"},
     {"name": "RFI Afrique",  "url": "https://www.rfi.fr/fr/rss/rss_afrique.xml"},
-    # Google News conservé en dernier (souvent bloqué depuis un datacenter)
+    # Bing News RSS (plus permissif que Google News depuis un serveur)
+    {"name": "Bing News",    "url": "https://www.bing.com/news/search?q=JOJ+Dakar+2026&format=rss&setlang=fr"},
+    {"name": "Bing News",    "url": "https://www.bing.com/news/search?q=Dakar+2026+Jeux+Olympiques&format=rss&setlang=fr"},
+    # Google News en dernier (souvent bloqué depuis un datacenter)
     {"name": "Google News",  "url": "https://news.google.com/rss/search?q=JOJ+Dakar+2026&hl=fr&gl=SN&ceid=SN:fr"},
     {"name": "Google News",  "url": "https://news.google.com/rss/search?q=COJOJ+Dakar&hl=fr&gl=SN&ceid=SN:fr"},
 ]
