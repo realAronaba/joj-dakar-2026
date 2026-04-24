@@ -27,6 +27,18 @@ def ticker():
     return jsonify([i.to_dict() for i in infos])
 
 
+# ── API : météo (refresh immédiat) ───────────────────────────────────────────
+
+@live_bp.route("/api/live/meteo", methods=["POST"])
+def refresh_meteo():
+    app = current_app._get_current_object()
+    def _run():
+        from app.weather_fetcher import mettre_a_jour_meteo
+        mettre_a_jour_meteo(app)
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"started": True})
+
+
 # ── API : rafraîchissement (public, rate-limité côté fetcher) ─────────────────
 
 @live_bp.route("/api/live/refresh", methods=["POST"])

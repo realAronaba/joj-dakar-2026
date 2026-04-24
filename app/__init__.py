@@ -76,10 +76,18 @@ def create_app():
             id="news_fetch_job", replace_existing=True,
         )
 
+        from app.weather_fetcher import mettre_a_jour_meteo
+        scheduler.add_job(
+            func=mettre_a_jour_meteo, args=[app],
+            trigger="interval", hours=3,
+            id="weather_job", replace_existing=True,
+        )
+
         scheduler.start()
-        # Premier import au démarrage (thread séparé pour ne pas bloquer)
+        # Imports au démarrage (threads séparés pour ne pas bloquer)
         threading.Thread(target=importer_actualites, args=[app], daemon=True).start()
-        logger.info("Scheduler démarré (push + email).")
+        threading.Thread(target=mettre_a_jour_meteo, args=[app], daemon=True).start()
+        logger.info("Scheduler démarré (push + email + météo).")
     except Exception as e:
         logger.error(f"Scheduler non démarré : {e}")
 
