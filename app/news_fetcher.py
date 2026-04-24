@@ -53,7 +53,10 @@ KEYWORDS = [
     "village olympique dakar", "athlètes dakar",
     "mascotte joj", "ayo dakar",
     "jeux de la jeunesse dakar", "dakar youth",
-    "stade léopold sédar senghor", "arena dakae",
+    "jo de la jeunesse", "jeunesse 2026",
+    "jeux jeunesse", "youth games dakar",
+    "olympique jeunesse dakar", "dakar olympique",
+    "youth olympic", "khaby lame joj",
 ]
 
 CAT_KEYWORDS = {
@@ -145,8 +148,10 @@ def fetch_newsapi(api_key: str) -> list:
     """
     queries = [
         "JOJ Dakar 2026",
-        "Youth Olympic Games Dakar",
-        "COJOJ Dakar 2026",
+        "Youth Olympic Games Dakar 2026",
+        "Jeux Olympiques Jeunesse Dakar",
+        "COJOJ Dakar",
+        "Dakar 2026 Olympics",
     ]
     results = []
     for q in queries:
@@ -254,9 +259,7 @@ def importer_actualites(app) -> int:
                 try:
                     articles = fetch_newsapi(newsapi_key)
                     for art in articles:
-                        full = art["titre"] + " " + art["desc"]
-                        if not est_pertinent(full):
-                            continue
+                        # Pas de filtre est_pertinent : la requête NewsAPI est déjà ciblée
                         if InfoLive.query.filter_by(source_url=art["link"]).first():
                             continue
 
