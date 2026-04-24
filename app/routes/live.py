@@ -72,6 +72,33 @@ def live_status():
     })
 
 
+# ── API : purge des articles non pertinents (admin) ──────────────────────────
+
+@live_bp.route("/api/live/purge", methods=["POST"])
+def purge_non_pertinents():
+    token = current_app.config.get("LIVE_ADMIN_TOKEN", "")
+    auth  = request.headers.get("X-Admin-Token", "") or request.args.get("token", "")
+    if not token or auth != token:
+        return jsonify({"error": "Non autorisé"}), 403
+
+    from app.news_fetcher import est_pertinent
+    supprimes = 0
+    gardes    = 0
+    for info in InfoLive.query.all():
+        # Les entrées météo ont une source_url commençant par "meteo:" → garder
+        if info.source_url and info.source_url.startswith("meteo:"):
+            gardes += 1
+            continue
+        full = info.titre + " " + info.contenu
+        if not est_pertinent(full):
+            db.session.delete(info)
+            supprimes += 1
+        else:
+            gardes += 1
+    db.session.commit()
+    return jsonify({"supprimes": supprimes, "gardes": gardes})
+
+
 # ── API : diagnostic sources (admin) ─────────────────────────────────────────
 
 @live_bp.route("/api/live/debug")

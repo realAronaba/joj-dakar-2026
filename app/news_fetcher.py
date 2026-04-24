@@ -350,7 +350,7 @@ def importer_depuis_apis(app) -> int:
                 newsapi_key = os.getenv("NEWSAPI_KEY", "")
                 if newsapi_key:
                     arts = fetch_newsapi(newsapi_key)
-                    n = _sauvegarder(arts, "NewsAPI", filtrer=False, db=db, InfoLive=InfoLive)
+                    n = _sauvegarder(arts, "NewsAPI", filtrer=True, db=db, InfoLive=InfoLive)
                     if n:
                         db.session.commit()
                         imported += n
@@ -419,7 +419,7 @@ def importer_tout(app) -> int:
             if newsapi_key:
                 try:
                     arts = fetch_newsapi(newsapi_key)
-                    n = _sauvegarder(arts, "NewsAPI", filtrer=False, db=db, InfoLive=InfoLive)
+                    n = _sauvegarder(arts, "NewsAPI", filtrer=True, db=db, InfoLive=InfoLive)
                     if n:
                         db.session.commit()
                         imported += n
