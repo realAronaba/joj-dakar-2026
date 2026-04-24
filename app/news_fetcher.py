@@ -48,17 +48,21 @@ SOURCES_RSS = [
 
 # ── Mots-clés de pertinence (RSS uniquement — API déjà ciblée) ───────────────
 KEYWORDS = [
+    # Français
     "joj", "dakar 2026", "cojoj",
     "jeux olympiques de la jeunesse", "jeux de la jeunesse",
-    "olympic youth", "youth olympic games",
     "jo de la jeunesse", "jeunesse 2026",
     "iba mar diop", "dakar arena", "diamniadio 2026",
     "saly beach", "tour de l'œuf",
     "village olympique dakar", "athlètes dakar",
     "mascotte joj", "ayo dakar",
-    "jeux jeunesse dakar", "youth games dakar",
-    "olympique jeunesse dakar", "khaby lame joj",
-    "youth olympic", "dakar olympic",
+    "jeux jeunesse dakar", "olympique jeunesse dakar",
+    # Anglais
+    "youth olympic games", "olympic youth",
+    "youth olympic 2026", "dakar 2026 youth",
+    "youth games dakar", "dakar olympic 2026",
+    "dakar 2026 games", "senegal olympic 2026",
+    "khaby lame joj", "khaby lame olympic",
 ]
 
 CAT_KEYWORDS = {
@@ -143,11 +147,10 @@ def fetch_rss(url: str, timeout: int = 15) -> list:
 # ── The Guardian API (gratuit, clé test sans inscription) ─────────────────────
 
 GUARDIAN_QUERIES = [
-    "dakar 2026 olympic",
-    "youth olympic games dakar",
-    "JOJ dakar senegal",
-    "dakar 2026 sport",
-    "youth olympic games 2026",
+    "\"youth olympic games\" dakar 2026",
+    "\"dakar 2026\" olympic",
+    "JOJ dakar 2026",
+    "\"youth olympic\" senegal 2026",
 ]
 
 
@@ -337,7 +340,7 @@ def importer_depuis_apis(app) -> int:
 
                 # The Guardian
                 arts = fetch_guardian()
-                n = _sauvegarder(arts, "The Guardian", filtrer=False, db=db, InfoLive=InfoLive)
+                n = _sauvegarder(arts, "The Guardian", filtrer=True, db=db, InfoLive=InfoLive)
                 if n:
                     db.session.commit()
                     imported += n
@@ -403,7 +406,7 @@ def importer_tout(app) -> int:
             # The Guardian
             try:
                 arts = fetch_guardian()
-                n = _sauvegarder(arts, "The Guardian", filtrer=False, db=db, InfoLive=InfoLive)
+                n = _sauvegarder(arts, "The Guardian", filtrer=True, db=db, InfoLive=InfoLive)
                 if n:
                     db.session.commit()
                     imported += n
