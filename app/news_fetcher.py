@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 _lock            = threading.Lock()
 _dernier_import  = None
+_derniere_erreur = None   # dernière erreur capturée (exposée via /api/live/status)
 MIN_INTERVAL_MIN = 5
 
 
@@ -199,81 +200,99 @@ def tester_sources(app) -> list:
 
 def importer_actualites(app) -> int:
     """Importe les nouveaux articles depuis toutes les sources. Retourne le nombre ajoutés."""
-    global _dernier_import
+    global _dernier_import, _derniere_erreur
+    import os
+    import traceback
 
-    with app.app_context():
-        from app import db
-        from app.models.info_live import InfoLive
-        from sqlalchemy import text
+    try:
+        with app.app_context():
+            from app import db
+            from app.models.info_live import InfoLive
+            from sqlalchemy import text
 
-        # Migration douce : ajout de source_url si manquant
-        try:
-            db.session.execute(text(
-                "ALTER TABLE infos_live ADD COLUMN source_url VARCHAR(500)"
-            ))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-
-        imported = 0
-
-        # ── RSS ──────────────────────────────────────────────────────────────
-        for source in SOURCES_RSS:
-            articles = fetch_rss(source["url"])
-            for art in articles:
-                full = art["titre"] + " " + art["desc"]
-                if not est_pertinent(full):
-                    continue
-                if InfoLive.query.filter_by(source_url=art["link"]).first():
-                    continue
-
-                contenu = art["desc"][:600].strip() or art["titre"]
-                if len(art["desc"]) > 600:
-                    contenu += "…"
-                contenu += f"\n\n📰 Source : {source['name']}"
-
-                db.session.add(InfoLive(
-                    titre      = art["titre"][:200],
-                    contenu    = contenu,
-                    categorie  = deviner_categorie(full),
-                    source_url = art["link"],
+            # Migration douce : ajout de source_url si manquant
+            try:
+                db.session.execute(text(
+                    "ALTER TABLE infos_live ADD COLUMN source_url VARCHAR(500)"
                 ))
-                imported += 1
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
-        # ── NewsAPI (si clé configurée) ───────────────────────────────────────
-        import os
-        newsapi_key = os.getenv("NEWSAPI_KEY", "")
-        if newsapi_key:
-            articles = fetch_newsapi(newsapi_key)
-            for art in articles:
-                full = art["titre"] + " " + art["desc"]
-                if not est_pertinent(full):
-                    continue
-                if InfoLive.query.filter_by(source_url=art["link"]).first():
-                    continue
+            imported = 0
 
-                contenu = art["desc"][:600].strip() or art["titre"]
-                if len(art["desc"]) > 600:
-                    contenu += "…"
-                src_name = art.get("source_name", "NewsAPI")
-                contenu += f"\n\n📰 Source : {src_name}"
+            # ── RSS ──────────────────────────────────────────────────────────
+            for source in SOURCES_RSS:
+                try:
+                    articles = fetch_rss(source["url"])
+                    for art in articles:
+                        full = art["titre"] + " " + art["desc"]
+                        if not est_pertinent(full):
+                            continue
+                        if InfoLive.query.filter_by(source_url=art["link"]).first():
+                            continue
 
-                db.session.add(InfoLive(
-                    titre      = art["titre"][:200],
-                    contenu    = contenu,
-                    categorie  = deviner_categorie(full),
-                    source_url = art["link"],
-                ))
-                imported += 1
+                        contenu = art["desc"][:600].strip() or art["titre"]
+                        if len(art["desc"]) > 600:
+                            contenu += "…"
+                        contenu += f"\n\n📰 Source : {source['name']}"
 
-        if imported:
-            db.session.commit()
-            logger.info(f"[news_fetcher] ✅ {imported} nouvel(s) article(s) importé(s).")
-        else:
-            logger.info("[news_fetcher] Aucun nouvel article pertinent trouvé.")
+                        db.session.add(InfoLive(
+                            titre      = art["titre"][:200],
+                            contenu    = contenu,
+                            categorie  = deviner_categorie(full),
+                            source_url = art["link"],
+                        ))
+                        imported += 1
+                except Exception as e:
+                    logger.warning(f"[news_fetcher] Erreur source {source['name']}: {e}")
+                    db.session.rollback()
 
-        _dernier_import = datetime.utcnow()
-        return imported
+            # ── NewsAPI (si clé configurée) ───────────────────────────────────
+            newsapi_key = os.getenv("NEWSAPI_KEY", "")
+            if newsapi_key:
+                try:
+                    articles = fetch_newsapi(newsapi_key)
+                    for art in articles:
+                        full = art["titre"] + " " + art["desc"]
+                        if not est_pertinent(full):
+                            continue
+                        if InfoLive.query.filter_by(source_url=art["link"]).first():
+                            continue
+
+                        contenu = art["desc"][:600].strip() or art["titre"]
+                        if len(art["desc"]) > 600:
+                            contenu += "…"
+                        src_name = art.get("source_name", "NewsAPI")
+                        contenu += f"\n\n📰 Source : {src_name}"
+
+                        db.session.add(InfoLive(
+                            titre      = art["titre"][:200],
+                            contenu    = contenu,
+                            categorie  = deviner_categorie(full),
+                            source_url = art["link"],
+                        ))
+                        imported += 1
+                except Exception as e:
+                    logger.warning(f"[news_fetcher] Erreur NewsAPI: {e}")
+                    db.session.rollback()
+
+            if imported:
+                db.session.commit()
+                logger.info(f"[news_fetcher] ✅ {imported} nouvel(s) article(s) importé(s).")
+            else:
+                logger.info("[news_fetcher] Aucun nouvel article pertinent trouvé.")
+
+            _derniere_erreur = None
+            _dernier_import  = datetime.utcnow()
+            return imported
+
+    except Exception:
+        tb = traceback.format_exc()
+        logger.error(f"[news_fetcher] CRASH importer_actualites:\n{tb}")
+        _derniere_erreur = tb
+        _dernier_import  = datetime.utcnow()
+        return 0
 
 
 def importer_si_necessaire(app) -> int:

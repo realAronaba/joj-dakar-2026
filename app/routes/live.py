@@ -51,11 +51,12 @@ def refresh():
 @live_bp.route("/api/live/status")
 def live_status():
     import os
-    from app.news_fetcher import _dernier_import
+    from app.news_fetcher import _dernier_import, _derniere_erreur
     return jsonify({
         "total":          InfoLive.query.count(),
         "newsapi_key_ok": bool(os.getenv("NEWSAPI_KEY", "")),
         "dernier_import": _dernier_import.isoformat() if _dernier_import else None,
+        "derniere_erreur": _derniere_erreur,
     })
 
 
