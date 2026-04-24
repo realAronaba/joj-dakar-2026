@@ -46,6 +46,19 @@ def refresh():
     return jsonify({"started": True, "total": InfoLive.query.count()})
 
 
+# ── API : statut public (diagnostic sans secret) ─────────────────────────────
+
+@live_bp.route("/api/live/status")
+def live_status():
+    import os
+    from app.news_fetcher import _dernier_import
+    return jsonify({
+        "total":          InfoLive.query.count(),
+        "newsapi_key_ok": bool(os.getenv("NEWSAPI_KEY", "")),
+        "dernier_import": _dernier_import.isoformat() if _dernier_import else None,
+    })
+
+
 # ── API : diagnostic sources (admin) ─────────────────────────────────────────
 
 @live_bp.route("/api/live/debug")
