@@ -38,12 +38,25 @@ def refresh():
     app = current_app._get_current_object()
 
     def _run():
-        from app.news_fetcher import importer_si_necessaire
-        importer_si_necessaire(app)
+        from app.news_fetcher import importer_actualites
+        importer_actualites(app)
 
     t = threading.Thread(target=_run, daemon=True)
     t.start()
     return jsonify({"started": True, "total": InfoLive.query.count()})
+
+
+# ── API : diagnostic sources (admin) ─────────────────────────────────────────
+
+@live_bp.route("/api/live/debug")
+def debug_sources():
+    token = current_app.config.get("LIVE_ADMIN_TOKEN", "")
+    auth  = request.headers.get("X-Admin-Token", "") or request.args.get("token", "")
+    if not token or auth != token:
+        return jsonify({"error": "Non autorisé"}), 403
+    from app.news_fetcher import tester_sources
+    rapport = tester_sources(current_app._get_current_object())
+    return jsonify(rapport)
 
 
 # ── API : publication (admin) ─────────────────────────────────────────────────

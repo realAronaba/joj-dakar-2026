@@ -223,6 +223,27 @@ body {
     object-position: center top;
 }
 
+.banner-logo-frame {
+    width: 280px;
+    padding: 2rem 1.5rem 1.5rem;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 3px solid var(--green);
+    box-shadow: 0 12px 48px rgba(0,133,63,0.25), 0 4px 16px rgba(0,0,0,0.35);
+    position: relative;
+    z-index: 2;
+    animation: float 6s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.banner-logo {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 .banner-ring {
     position: absolute;
     border-radius: 50%;
@@ -1545,6 +1566,7 @@ body {
     .banner-cta   { align-self: center; }
     .banner-visual { flex: unset; }
     .banner-img-frame { width: 220px; height: 250px; }
+    .banner-logo-frame { width: 220px; }
     .banner-ring-1 { width: 250px; height: 250px; }
     .banner-ring-2 { width: 310px; height: 310px; }
 
@@ -1623,6 +1645,7 @@ body {
     }
     .banner-title { font-size: clamp(2rem, 10vw, 3.2rem); }
     .banner-img-frame { width: 160px; height: 190px; }
+    .banner-logo-frame { width: 160px; }
     .banner-ring-1 { width: 190px; height: 190px; }
     .banner-ring-2 { display: none; }
 

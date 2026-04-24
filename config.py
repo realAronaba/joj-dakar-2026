@@ -26,3 +26,6 @@ class Config:
 
     # Infos Live
     LIVE_ADMIN_TOKEN = os.getenv("LIVE_ADMIN_TOKEN", "")
+
+    # NewsAPI.org (optionnel — 100 req/jour en gratuit)
+    NEWSAPI_KEY = os.getenv("NEWSAPI_KEY", "")

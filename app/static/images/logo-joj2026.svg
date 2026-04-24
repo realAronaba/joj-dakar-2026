@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 400" role="img" aria-label="JOJ Dakar 2026 — Youth Olympic Games">
+
+  <!-- Speech bubble background -->
+  <path d="
+    M 40 10
+    Q 10 10 10 40
+    L 10 210
+    Q 10 240 40 240
+    L 200 240
+    L 215 270
+    L 230 240
+    L 380 240
+    Q 410 240 410 210
+    L 410 40
+    Q 410 10 380 10
+    Z
+  " fill="#111111"/>
+
+  <!-- Olympic rings — white on dark background, centred in bubble -->
+  <!-- Row 1: rings 1, 2, 3 -->
+  <circle cx="145" cy="118" r="32" fill="none" stroke="#ffffff" stroke-width="9"/>
+  <circle cx="210" cy="118" r="32" fill="none" stroke="#ffffff" stroke-width="9"/>
+  <circle cx="275" cy="118" r="32" fill="none" stroke="#ffffff" stroke-width="9"/>
+  <!-- Row 2: rings 4, 5 (offset) -->
+  <circle cx="177" cy="150" r="32" fill="none" stroke="#ffffff" stroke-width="9"/>
+  <circle cx="243" cy="150" r="32" fill="none" stroke="#ffffff" stroke-width="9"/>
+
+  <!-- Clip row-1 rings so row-2 crosses naturally -->
+  <!-- (visual layering: paint row-2 dark overlap strips) -->
+  <!-- Overlap strip ring4 over ring1 -->
+  <clipPath id="r1"><circle cx="145" cy="118" r="32"/></clipPath>
+  <clipPath id="r2"><circle cx="210" cy="118" r="32"/></clipPath>
+  <clipPath id="r3"><circle cx="275" cy="118" r="32"/></clipPath>
+  <circle cx="177" cy="150" r="32" fill="none" stroke="#111111" stroke-width="9" clip-path="url(#r1)"/>
+  <circle cx="177" cy="150" r="32" fill="none" stroke="#111111" stroke-width="9" clip-path="url(#r2)"/>
+  <circle cx="243" cy="150" r="32" fill="none" stroke="#111111" stroke-width="9" clip-path="url(#r2)"/>
+  <circle cx="243" cy="150" r="32" fill="none" stroke="#111111" stroke-width="9" clip-path="url(#r3)"/>
+
+  <!-- DAKAR 2026 -->
+  <text
+    x="210" y="330"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="52"
+    font-weight="900"
+    letter-spacing="2"
+    fill="#111111">DAKAR 2026</text>
+
+  <!-- YOUTH OLYMPIC GAMES -->
+  <text
+    x="210" y="368"
+    text-anchor="middle"
+    font-family="'Arial', 'Helvetica Neue', sans-serif"
+    font-size="17"
+    font-weight="500"
+    letter-spacing="3"
+    fill="#333333">YOUTH OLYMPIC GAMES</text>
+</svg>
