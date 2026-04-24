@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="JOJ Dakar 2026">
+
+  <!-- Ruban de médaille -->
+  <rect x="26" y="0" width="5" height="18" rx="1" fill="#C2410C" transform="rotate(-12 28.5 9)"/>
+  <rect x="33" y="0" width="5" height="18" rx="1" fill="#00853F" transform="rotate(12 35.5 9)"/>
+
+  <!-- Corps médaille circulaire — couleurs sénégalaises -->
+  <circle cx="32" cy="42" r="20" fill="#FDEF42" stroke="#C2410C" stroke-width="2.5"/>
+  <circle cx="32" cy="42" r="16" fill="#111111"/>
+
+  <!-- Speech bubble JOJ (miniature) en blanc sur fond sombre -->
+  <path d="
+    M20 33 Q19 33 19 34 L19 43 Q19 44 20 44
+    L28 44 L29.5 46.5 L31 44 L44 44
+    Q45 44 45 43 L45 34 Q45 33 44 33 Z
+  " fill="#ffffff" opacity="0.92"/>
+
+  <!-- Anneaux olympiques — 5 petits cercles blancs sur noir dans la bulle -->
+  <circle cx="23.5" cy="38.5" r="2.4" fill="none" stroke="#111" stroke-width="1.1"/>
+  <circle cx="28.5" cy="38.5" r="2.4" fill="none" stroke="#111" stroke-width="1.1"/>
+  <circle cx="33.5" cy="38.5" r="2.4" fill="none" stroke="#111" stroke-width="1.1"/>
+  <circle cx="26"   cy="41"   r="2.4" fill="none" stroke="#111" stroke-width="1.1"/>
+  <circle cx="31"   cy="41"   r="2.4" fill="none" stroke="#111" stroke-width="1.1"/>
+
+  <!-- Bordure or -->
+  <circle cx="32" cy="42" r="20" fill="none" stroke="#b45309" stroke-width="1"/>
+</svg>

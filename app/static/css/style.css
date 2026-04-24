@@ -58,6 +58,19 @@ body {
     font-size: 1.75rem;
 }
 
+.header-logo-img {
+    width: 2.2rem;
+    height: 2.2rem;
+    object-fit: contain;
+    display: block;
+    flex-shrink: 0;
+}
+
+.header-flag {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
 .header-title {
     font-size: 1.5rem;
     font-weight: 800;
@@ -349,6 +362,7 @@ body {
     background: rgba(255,255,255,0.15);
     border-radius: 8px;
     padding: 0.5rem 1.25rem;
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 
@@ -415,6 +429,7 @@ body {
     border-radius: 20px;
     padding: 0.25rem 0.75rem;
     font-size: 0.85rem;
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 
@@ -431,6 +446,7 @@ body {
     height: 44px;
     border-radius: 50%;
     cursor: pointer;
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     transition: background 0.2s;
     z-index: 10;

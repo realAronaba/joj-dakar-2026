@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}JOJ Dakar 2026{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml"
+          href="{{ url_for('static', filename='images/favicon-joj.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header class="site-header">
         <div class="container header-inner">
             <a href="{{ url_for('main.index') }}" class="header-brand">
-                <span class="header-logo">&#127941;</span>
+                <img src="{{ url_for('static', filename='images/favicon-joj.svg') }}"
+                     alt="Logo JOJ" class="header-logo-img">
+                <span class="header-flag">🇸🇳</span>
                 <span class="header-title">Dakar 2026</span>
             </a>
 
