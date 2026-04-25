@@ -1,4 +1,5 @@
 import threading
+from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, render_template, current_app
 from app import db
 from app.models.info_live import InfoLive, CATEGORIES
@@ -8,16 +9,27 @@ live_bp = Blueprint("live", __name__)
 
 # ── API : lecture du fil ──────────────────────────────────────────────────────
 
+JOURS_RETENTION = 30   # on n'affiche que les articles des 30 derniers jours
+
 @live_bp.route("/api/live/infos")
 def get_infos():
-    since_id = request.args.get("since_id", 0, type=int)
-    limit    = request.args.get("limit", 30, type=int)
+    since_id  = request.args.get("since_id", 0, type=int)
+    limit     = request.args.get("limit", 200, type=int)
+    seuil     = datetime.utcnow() - timedelta(days=JOURS_RETENTION)
+
     if since_id:
         q = (InfoLive.query
              .filter(InfoLive.id > since_id)
              .order_by(InfoLive.created_at.asc()))
     else:
-        q = InfoLive.query.order_by(InfoLive.created_at.desc())
+        # Articles récents OU météo (toujours affichée quelle que soit la date)
+        from sqlalchemy import or_
+        q = (InfoLive.query
+             .filter(or_(
+                 InfoLive.created_at >= seuil,
+                 InfoLive.source_url.like("meteo:%"),
+             ))
+             .order_by(InfoLive.created_at.desc()))
     return jsonify([i.to_dict() for i in q.limit(limit).all()])
 
 
@@ -25,6 +37,40 @@ def get_infos():
 def ticker():
     infos = InfoLive.query.order_by(InfoLive.created_at.desc()).limit(8).all()
     return jsonify([i.to_dict() for i in infos])
+
+
+# ── API : ping (cron externe — garde Render éveillé + import) ────────────────
+
+@live_bp.route("/api/live/ping", methods=["GET", "POST"])
+def ping():
+    """
+    Appelé par cron-job.org toutes les 15 min.
+    Garde le service Render éveillé et déclenche un import si le cooldown est écoulé.
+    """
+    app = current_app._get_current_object()
+
+    def _bg():
+        from app.news_fetcher import importer_actualites, importer_depuis_apis
+        from app.weather_fetcher import mettre_a_jour_meteo
+        importer_actualites(app)
+        mettre_a_jour_meteo(app)
+
+    threading.Thread(target=_bg, daemon=True).start()
+
+    # Nettoyage des articles > 45 jours (sauf météo)
+    seuil = datetime.utcnow() - timedelta(days=45)
+    n = (InfoLive.query
+         .filter(InfoLive.created_at < seuil)
+         .filter(~InfoLive.source_url.like("meteo:%"))
+         .delete(synchronize_session=False))
+    if n:
+        db.session.commit()
+
+    return jsonify({
+        "ok":    True,
+        "total": InfoLive.query.count(),
+        "ts":    datetime.utcnow().isoformat(),
+    })
 
 
 # ── API : météo (refresh immédiat) ───────────────────────────────────────────
