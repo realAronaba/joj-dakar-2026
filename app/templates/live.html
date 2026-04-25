@@ -12,11 +12,12 @@
         <p class="page-intro">Actualités des sites, compétitions, travaux et annonces</p>
       </div>
       <div class="live-status-row">
-      <div id="liveStatus" class="live-status">🔴 Connexion…</div>
-      <button type="button" id="btnRefresh" class="btn-live-refresh" title="Actualiser maintenant">
-        ↻ Actualiser
-      </button>
-    </div>
+        <div id="liveStatus" class="live-status">🔴 Connexion…</div>
+        <div id="liveCounter" class="live-counter hidden"></div>
+        <button type="button" id="btnRefresh" class="btn-live-refresh" title="Actualiser maintenant">
+          ↻ Actualiser
+        </button>
+      </div>
     </div>
 
     <!-- Filtres catégories -->
@@ -25,6 +26,11 @@
       {% for key, cat in categories.items() %}
       <button type="button" class="filtre-btn" data-cat="{{ key }}">{{ cat.emoji }} {{ cat.label }}</button>
       {% endfor %}
+    </div>
+
+    <!-- Indicateur de progression de rotation -->
+    <div id="liveProgress" class="live-progress-bar hidden">
+      <div id="liveProgressFill" class="live-progress-fill"></div>
     </div>
 
     <!-- Fil d'infos -->
@@ -36,15 +42,36 @@
       <p>📭 Aucune information disponible pour le moment.</p>
     </div>
 
+    <!-- Navigation entre vagues -->
+    <div id="liveNav" class="live-nav hidden">
+      <button type="button" id="btnPrev" class="live-nav-btn" title="Infos précédentes">← Précédent</button>
+      <span id="liveNavInfo" class="live-nav-info"></span>
+      <button type="button" id="btnNext" class="live-nav-btn" title="Infos suivantes">Suivant →</button>
+    </div>
+
   </div>
 </section>
 
 <script>
-const feed      = document.getElementById('liveFeed');
-const liveEmpty = document.getElementById('liveEmpty');
-const statusEl  = document.getElementById('liveStatus');
-let lastId      = 0;
-let catActive   = 'toutes';
+const feed        = document.getElementById('liveFeed');
+const liveEmpty   = document.getElementById('liveEmpty');
+const statusEl    = document.getElementById('liveStatus');
+const counterEl   = document.getElementById('liveCounter');
+const progressBar = document.getElementById('liveProgress');
+const progressFill= document.getElementById('liveProgressFill');
+const navEl       = document.getElementById('liveNav');
+const navInfo     = document.getElementById('liveNavInfo');
+
+const PAGE_SIZE       = 6;    // articles affichés par vague
+const ROTATION_MS     = 20000; // 20 s entre chaque rotation automatique
+const POLL_MS         = 45000; // poll pour nouveaux articles toutes les 45 s
+
+let allArticles   = [];   // tous les articles chargés (triés récent → ancien)
+let catActive     = 'toutes';
+let currentPage   = 0;
+let rotationTimer = null;
+let progressTimer = null;
+let pauseRotation = false;  // pause si l'utilisateur interagit
 
 const CAT_COLORS = {
   competition: '#00853F',
@@ -55,7 +82,8 @@ const CAT_COLORS = {
   programme:   '#b45309',
 };
 
-function buildCard(info, prepend = false) {
+// ── Construction d'une carte ──────────────────────────────────────────────────
+function buildCard(info) {
   const color = CAT_COLORS[info.categorie] || '#555';
   const card  = document.createElement('div');
   card.className = 'live-card';
@@ -70,72 +98,178 @@ function buildCard(info, prepend = false) {
     </div>
     <h3 class="live-card-titre">${info.titre}</h3>
     <p class="live-card-contenu">${info.contenu.replace(/\n/g, '<br>')}</p>
-    ${info.source_url ? `<a href="${info.source_url}" target="_blank" rel="noopener" class="live-card-source">Lire l'article →</a>` : ''}
+    ${info.source_url && !info.source_url.startsWith('meteo:')
+      ? `<a href="${info.source_url}" target="_blank" rel="noopener" class="live-card-source">Lire l'article →</a>`
+      : ''}
   `;
-  if (prepend) {
-    card.classList.add('live-card-new');
-    feed.prepend(card);
-    setTimeout(() => card.classList.remove('live-card-new'), 2000);
-  } else {
-    feed.appendChild(card);
-  }
   return card;
 }
 
-function appliquerFiltreCat() {
-  document.querySelectorAll('.live-card').forEach(card => {
-    card.style.display = (catActive === 'toutes' || card.dataset.cat === catActive) ? 'block' : 'none';
-  });
-  liveEmpty.classList.toggle('hidden',
-    [...document.querySelectorAll('.live-card')].some(c => c.style.display !== 'none'));
+// ── Articles filtrés selon la catégorie active ────────────────────────────────
+function articlesFiltres() {
+  return catActive === 'toutes'
+    ? allArticles
+    : allArticles.filter(a => a.categorie === catActive);
 }
 
-async function chargerInitial() {
-  try {
-    const r = await fetch('/api/live/infos?limit=30');
-    const infos = await r.json();
+// ── Affiche une vague d'articles avec animation ───────────────────────────────
+function afficherPage(page, animate = true) {
+  const articles = articlesFiltres();
+  const total    = articles.length;
+
+  if (total === 0) {
     feed.innerHTML = '';
-    if (infos.length === 0) {
-      liveEmpty.classList.remove('hidden');
-    } else {
-      infos.forEach(info => buildCard(info));
-      lastId = infos[0].id;
+    liveEmpty.classList.remove('hidden');
+    navEl.classList.add('hidden');
+    progressBar.classList.add('hidden');
+    counterEl.classList.add('hidden');
+    return;
+  }
+
+  liveEmpty.classList.add('hidden');
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  currentPage = ((page % totalPages) + totalPages) % totalPages;
+
+  const slice = articles.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+
+  const doRender = () => {
+    feed.innerHTML = '';
+    slice.forEach(info => feed.appendChild(buildCard(info)));
+    feed.style.opacity = '1';
+    feed.style.transform = 'translateY(0)';
+  };
+
+  if (animate) {
+    feed.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    feed.style.opacity    = '0';
+    feed.style.transform  = 'translateY(8px)';
+    setTimeout(doRender, 300);
+  } else {
+    feed.style.transition = 'none';
+    doRender();
+  }
+
+  // Compteur
+  counterEl.textContent = `${currentPage * PAGE_SIZE + 1}–${Math.min((currentPage + 1) * PAGE_SIZE, total)} / ${total} infos`;
+  counterEl.classList.remove('hidden');
+
+  // Navigation
+  if (totalPages > 1) {
+    navEl.classList.remove('hidden');
+    navInfo.textContent = `Vague ${currentPage + 1} / ${totalPages}`;
+  } else {
+    navEl.classList.add('hidden');
+  }
+
+  // Barre de progression
+  if (totalPages > 1) {
+    progressBar.classList.remove('hidden');
+    demarrerProgression();
+  }
+}
+
+// ── Barre de progression (temps avant prochaine rotation) ─────────────────────
+function demarrerProgression() {
+  if (progressTimer) clearInterval(progressTimer);
+  progressFill.style.transition = 'none';
+  progressFill.style.width = '0%';
+  requestAnimationFrame(() => {
+    progressFill.style.transition = `width ${ROTATION_MS}ms linear`;
+    progressFill.style.width = '100%';
+  });
+}
+
+// ── Rotation automatique ──────────────────────────────────────────────────────
+function demarrerRotation() {
+  if (rotationTimer) clearInterval(rotationTimer);
+  rotationTimer = setInterval(() => {
+    if (!pauseRotation && articlesFiltres().length > PAGE_SIZE) {
+      afficherPage(currentPage + 1);
     }
+  }, ROTATION_MS);
+}
+
+// ── Pause rotation si interaction utilisateur (reprend après 60 s) ────────────
+function pauserTemporairement() {
+  pauseRotation = true;
+  clearTimeout(window._repriseTimer);
+  window._repriseTimer = setTimeout(() => { pauseRotation = false; }, 60000);
+}
+
+// ── Chargement initial : tous les articles ────────────────────────────────────
+async function chargerTout() {
+  try {
+    const r     = await fetch('/api/live/infos?limit=200');
+    allArticles = await r.json();
+
+    if (allArticles.length === 0) {
+      feed.innerHTML = '';
+      liveEmpty.classList.remove('hidden');
+      statusEl.textContent = '🟢 En direct';
+      return;
+    }
+
+    currentPage = 0;
+    afficherPage(0, false);
+    demarrerRotation();
     statusEl.textContent = '🟢 En direct';
-    appliquerFiltreCat();
   } catch(e) {
     statusEl.textContent = '🔴 Erreur de connexion';
   }
 }
 
+// ── Poll : nouveaux articles depuis le dernier chargement ─────────────────────
 async function pollNouveaux() {
-  if (!lastId) return;
+  if (!allArticles.length) return;
+  const lastId = allArticles[0].id;
   try {
-    const r = await fetch(`/api/live/infos?since_id=${lastId}`);
-    const infos = await r.json();
-    infos.forEach(info => {
-      buildCard(info, true);
-      lastId = Math.max(lastId, info.id);
-    });
-    if (infos.length > 0) {
-      appliquerFiltreCat();
-      statusEl.textContent = `🟢 Mis à jour`;
-      setTimeout(() => statusEl.textContent = '🟢 En direct', 3000);
+    const r    = await fetch(`/api/live/infos?since_id=${lastId}`);
+    const news = await r.json();
+    if (news.length === 0) return;
+
+    // Prépend les nouveaux en tête du tableau
+    allArticles = [...news, ...allArticles];
+
+    // Si on est sur la première page, on y revient pour montrer les nouveautés
+    if (currentPage === 0) {
+      afficherPage(0);
     }
+    // Sinon on montre un badge "+N nouvelles infos"
+    else {
+      statusEl.textContent = `🔴 +${news.length} nouvelle${news.length > 1 ? 's' : ''} info${news.length > 1 ? 's' : ''}`;
+    }
+
+    counterEl.textContent = `${currentPage * PAGE_SIZE + 1}–${Math.min((currentPage + 1) * PAGE_SIZE, allArticles.length)} / ${allArticles.length} infos`;
+    setTimeout(() => statusEl.textContent = '🟢 En direct', 5000);
   } catch(e) {}
 }
 
-// Filtres catégories
+// ── Filtres catégories ────────────────────────────────────────────────────────
 document.querySelectorAll('.live-cat-filtres .filtre-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.live-cat-filtres .filtre-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     catActive = btn.dataset.cat;
-    appliquerFiltreCat();
+    currentPage = 0;
+    pauserTemporairement();
+    afficherPage(0);
+    demarrerRotation();
   });
 });
 
-// Déclenche un refresh serveur + recharge le fil après 5 s
+// ── Navigation manuelle ───────────────────────────────────────────────────────
+document.getElementById('btnPrev').addEventListener('click', () => {
+  pauserTemporairement();
+  afficherPage(currentPage - 1);
+  demarrerRotation();
+});
+document.getElementById('btnNext').addEventListener('click', () => {
+  pauserTemporairement();
+  afficherPage(currentPage + 1);
+  demarrerRotation();
+});
+
+// ── Refresh serveur ───────────────────────────────────────────────────────────
 async function rafraichir(silencieux = false) {
   if (!silencieux) {
     statusEl.textContent = '🔄 Recherche de nouvelles infos…';
@@ -143,20 +277,21 @@ async function rafraichir(silencieux = false) {
   }
   try {
     await fetch('/api/live/refresh', { method: 'POST' });
-    // Attendre que l'import (background) se termine
-    await new Promise(r => setTimeout(r, 5000));
-    await chargerInitial();
+    await new Promise(r => setTimeout(r, 6000));
+    await chargerTout();
   } finally {
     document.getElementById('btnRefresh').disabled = false;
   }
 }
 
-document.getElementById('btnRefresh').addEventListener('click', () => rafraichir());
+document.getElementById('btnRefresh').addEventListener('click', () => {
+  pauserTemporairement();
+  rafraichir();
+});
 
-// Au chargement : afficher les articles existants immédiatement,
-// puis déclencher un refresh en arrière-plan
-chargerInitial();
-rafraichir(true);                    // silencieux : ne touche pas au statut
-setInterval(pollNouveaux, 60000);    // poll toutes les 60 s pour les nouveaux
+// ── Démarrage ─────────────────────────────────────────────────────────────────
+chargerTout();
+rafraichir(true);
+setInterval(pollNouveaux, POLL_MS);
 </script>
 {% endblock %}
