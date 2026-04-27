@@ -62,18 +62,13 @@
 
     <!-- ── Splash de bienvenue ──────────────────────────────────────── -->
     <div id="splashOverlay" class="splash-overlay hidden">
-      <div class="splash-box">
-        <img src="{{ url_for('static', filename='images/mascotte-joj.png') }}"
-             alt="Ayo, mascotte JOJ Dakar 2026" class="splash-mascotte">
-        <div class="splash-content">
-          <p class="splash-label">Bienvenue aux</p>
-          <h2 class="splash-title">Jeux Olympiques<br>de la Jeunesse</h2>
-          <p class="splash-city">Dakar 2026</p>
-          <p class="splash-desc">Suivez toutes les épreuves, les sites et les résultats en direct depuis Dakar, Diamniadio et Saly.</p>
-          <button type="button" id="splashClose" class="splash-btn">
-            Découvrir →
-          </button>
-        </div>
+      <img src="{{ url_for('static', filename='images/mascotte-joj.png') }}"
+           alt="Ayo, mascotte JOJ Dakar 2026" class="splash-mascotte">
+      <div class="splash-content">
+        <p class="splash-label">Bienvenue aux</p>
+        <h2 class="splash-title">Jeux Olympiques de la Jeunesse</h2>
+        <p class="splash-city">Dakar 2026</p>
+        <button type="button" id="splashClose" class="splash-btn">Découvrir →</button>
       </div>
     </div>
 
