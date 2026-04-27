@@ -62,6 +62,23 @@
       </div>
     </div>
 
+    <!-- ── Splash de bienvenue (mascotte) ──────────────────────────── -->
+    <div id="splashOverlay" class="splash-overlay hidden">
+      <div class="splash-box">
+        <img src="{{ url_for('static', filename='images/mascotte-joj.png') }}"
+             alt="Mascotte JOJ Dakar 2026" class="splash-mascotte">
+        <div class="splash-content">
+          <p class="splash-subtitle">Bienvenue aux</p>
+          <h2 class="splash-title">Jeux Olympiques<br>de la Jeunesse</h2>
+          <p class="splash-city">🏙️ Dakar 2026</p>
+          <p class="splash-desc">Suivez toutes les épreuves, les sites et les infos en direct depuis Dakar, Diamniadio et Saly.</p>
+          <button type="button" id="splashClose" class="splash-btn">
+            Découvrir l'application →
+          </button>
+        </div>
+      </div>
+    </div>
+
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
@@ -96,6 +113,26 @@
     </div>
 
     <script>
+    // ── Splash bienvenue ───────────────────────────
+    (function() {
+        const overlay = document.getElementById('splashOverlay');
+        if (!localStorage.getItem('splashSeen')) {
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        document.getElementById('splashClose').addEventListener('click', function() {
+            overlay.classList.add('splash-closing');
+            setTimeout(function() {
+                overlay.classList.add('hidden');
+                document.body.style.overflow = '';
+                localStorage.setItem('splashSeen', '1');
+            }, 400);
+        });
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) document.getElementById('splashClose').click();
+        });
+    })();
+
     // ── Menu burger ────────────────────────────────
     const burger = document.getElementById('navBurger');
     const nav    = document.getElementById('siteNav');
