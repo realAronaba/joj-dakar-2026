@@ -59,11 +59,14 @@ body {
 }
 
 .header-logo-img {
-    width: 2.2rem;
-    height: 2.2rem;
+    height: 2.6rem;
+    width: auto;
     object-fit: contain;
     display: block;
     flex-shrink: 0;
+    border-radius: 6px;
+    background: #fff;
+    padding: 2px 4px;
 }
 
 .header-flag {
