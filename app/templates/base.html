@@ -12,8 +12,6 @@
     <header class="site-header">
         <div class="container header-inner">
             <a href="{{ url_for('main.index') }}" class="header-brand">
-                <img src="{{ url_for('static', filename='images/logo-dakar2026.png') }}"
-                     alt="Logo JOJ Dakar 2026" class="header-logo-img">
                 <span class="header-title">Dakar 2026</span>
             </a>
 
@@ -64,14 +62,18 @@
 
     <!-- ── Splash de bienvenue ──────────────────────────────────────── -->
     <div id="splashOverlay" class="splash-overlay hidden">
-      <div class="splash-box splash-box--no-img">
-        <p class="splash-subtitle">Bienvenue aux</p>
-        <h2 class="splash-title">Jeux Olympiques<br>de la Jeunesse</h2>
-        <p class="splash-city">🏙️ Dakar 2026</p>
-        <p class="splash-desc">Suivez toutes les épreuves, les sites et les infos en direct depuis Dakar, Diamniadio et Saly.</p>
-        <button type="button" id="splashClose" class="splash-btn">
-          Découvrir l'application →
-        </button>
+      <div class="splash-box">
+        <img src="{{ url_for('static', filename='images/mascotte-joj.png') }}"
+             alt="Ayo, mascotte JOJ Dakar 2026" class="splash-mascotte">
+        <div class="splash-content">
+          <p class="splash-label">Bienvenue aux</p>
+          <h2 class="splash-title">Jeux Olympiques<br>de la Jeunesse</h2>
+          <p class="splash-city">Dakar 2026</p>
+          <p class="splash-desc">Suivez toutes les épreuves, les sites et les résultats en direct depuis Dakar, Diamniadio et Saly.</p>
+          <button type="button" id="splashClose" class="splash-btn">
+            Découvrir →
+          </button>
+        </div>
       </div>
     </div>
 
