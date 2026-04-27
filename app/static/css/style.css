@@ -2397,25 +2397,17 @@ body {
     width: 100%;
 }
 
-.splash-mascotte {
-    width: clamp(200px, 40vw, 380px);
-    object-fit: contain;
-    flex-shrink: 0;
-    filter: drop-shadow(0 8px 24px rgba(0,0,0,.5));
-    animation: mascotteUp .6s ease .1s both;
-}
-@keyframes mascotteUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+.splash-box--no-img {
+    display: block;
+    max-width: 480px;
+    text-align: center;
+    padding: 2.5rem 2rem;
+    animation: splashContentIn .5s ease .1s both;
 }
 
-.splash-content {
-    padding: 2rem 2rem 2.5rem;
-    animation: splashContentIn .5s ease .25s both;
-}
 @keyframes splashContentIn {
-    from { transform: translateX(20px); opacity: 0; }
-    to   { transform: translateX(0);    opacity: 1; }
+    from { transform: translateY(16px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
 }
 
 .splash-subtitle {
@@ -2464,9 +2456,7 @@ body {
 }
 
 @media (max-width: 560px) {
-    .splash-box { flex-direction: column; align-items: center; text-align: center; }
-    .splash-mascotte { width: 55vw; }
-    .splash-content { padding: 1rem 0 1.5rem; }
+    .splash-box--no-img { padding: 1.75rem 1.25rem; }
     .splash-desc { max-width: 100%; }
 }
 
