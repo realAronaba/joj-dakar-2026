@@ -120,7 +120,7 @@ def chat():
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=20) as resp:
             result = json.loads(resp.read().decode("utf-8"))
         reply = result["choices"][0]["message"]["content"].strip()
 
@@ -131,8 +131,26 @@ def chat():
 
         return jsonify({"response": reply})
 
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="ignore")
+        import logging
+        logging.getLogger(__name__).error(f"Groq HTTP {e.code}: {body[:300]}")
+        return jsonify({"response": f"Erreur API ({e.code}). Vérifiez la clé GROQ_API_KEY."})
+    except urllib.error.URLError as e:
+        return jsonify({"response": f"Erreur réseau : {str(e.reason)[:100]}"})
     except Exception as e:
-        return jsonify({"response": "Désolé, une erreur est survenue. Réessayez dans un instant."})
+        import logging
+        logging.getLogger(__name__).error(f"Chat error: {e}")
+        return jsonify({"response": f"Erreur inattendue : {str(e)[:120]}"})
+
+
+@chat_bp.route("/api/chat/status")
+def chat_status():
+    api_key = os.getenv("GROQ_API_KEY", "")
+    return jsonify({
+        "groq_key_set": bool(api_key),
+        "groq_key_prefix": api_key[:8] + "..." if api_key else None,
+    })
 
 
 @chat_bp.route("/api/chat/reset", methods=["POST"])
