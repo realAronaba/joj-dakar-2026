@@ -64,6 +64,7 @@ body {
     object-fit: contain;
     display: block;
     flex-shrink: 0;
+    mix-blend-mode: multiply;
     transition: transform 0.2s ease;
 }
 
