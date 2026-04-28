@@ -570,6 +570,22 @@ body {
     border-top: 3px solid var(--terracotta);
 }
 
+.footer-disclaimer {
+    margin-top: .5rem;
+    font-size: .78rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.footer-disclaimer a {
+    color: #00853F;
+    text-decoration: none;
+}
+
+.footer-disclaimer a:hover {
+    text-decoration: underline;
+}
+
 /* ── Page Sites ── */
 .page-sites {
     padding: 3rem 0 5rem;
