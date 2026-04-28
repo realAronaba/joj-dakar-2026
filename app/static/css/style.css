@@ -248,6 +248,14 @@ body {
     object-position: center top;
 }
 
+.banner-logo-img {
+    width: clamp(220px, 30vw, 360px);
+    height: auto;
+    object-fit: contain;
+    animation: float 6s ease-in-out infinite, fadeIn 0.8s 0.5s ease both;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));
+}
+
 .banner-mascotte {
     width: clamp(260px, 32vw, 400px);
     height: auto;
