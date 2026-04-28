@@ -145,6 +145,53 @@ body {
     gap: 1.1rem;
 }
 
+/* ── Bienvenue trilingue ── */
+.welcome-strip {
+    height: 2rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: .2rem;
+}
+
+.welcome-word {
+    position: absolute;
+    left: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .5s ease, transform .5s ease;
+}
+
+.welcome-word.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.banner-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: .5rem;
+}
+
+.banner-cta--outline {
+    background: transparent;
+    border: 2px solid rgba(255,255,255,.5);
+    color: #fff;
+    box-shadow: none;
+}
+
+.banner-cta--outline:hover {
+    background: rgba(255,255,255,.1);
+    border-color: #fff;
+    transform: translateY(-2px);
+    box-shadow: none;
+}
+
 .banner-pre {
     font-size: 0.85rem;
     font-weight: 700;

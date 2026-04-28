@@ -8,14 +8,38 @@
 <section class="home-banner">
   <div class="banner-content container">
     <div class="banner-text">
-      <p class="banner-pre">Pour la première fois en Afrique</p>
+
+      <!-- Message de bienvenue trilingue -->
+      <div class="welcome-strip">
+        <span class="welcome-word active">Welcome</span>
+        <span class="welcome-word">Bienvenue</span>
+        <span class="welcome-word">Dalal ak Jàmme</span>
+      </div>
+
       <h1 class="banner-title">Jeux Olympiques<br>de la <span class="accent">Jeunesse</span></h1>
       <p class="banner-dates">31 octobre — 13 novembre 2026</p>
       <p class="banner-tagline">Dakar accueille &nbsp;·&nbsp; L'Afrique célèbre</p>
-      <a href="{{ url_for('main.programme') }}" class="banner-cta">Voir le programme</a>
+
+      <div class="banner-actions">
+        <a href="{{ url_for('main.programme') }}" class="banner-cta">Découvrir →</a>
+        <a href="{{ url_for('main.sites') }}" class="banner-cta banner-cta--outline">Les sites</a>
+      </div>
+
     </div>
   </div>
 </section>
+
+<script>
+(function() {
+  const words = document.querySelectorAll('.welcome-word');
+  let current = 0;
+  setInterval(function() {
+    words[current].classList.remove('active');
+    current = (current + 1) % words.length;
+    words[current].classList.add('active');
+  }, 2000);
+})();
+</script>
 
 <!-- ── Accès rapides ── -->
 <section class="quick-actions container">
