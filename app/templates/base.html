@@ -84,10 +84,11 @@
       <div id="chatPanel" class="chat-panel hidden">
         <div class="chat-header">
           <span class="chat-header-icon">🏅</span>
-          <div>
+          <div class="chat-header-text">
             <p class="chat-header-title">Assistant JOJ Dakar 2026</p>
-            <p class="chat-header-sub">Répond à vos questions pratiques</p>
+            <p class="chat-header-sub">Propulsé par Claude AI</p>
           </div>
+          <button type="button" id="chatReset" class="chat-reset-btn" title="Nouvelle conversation">↺</button>
         </div>
         <div id="chatMessages" class="chat-messages">
           <div class="chat-msg bot">
@@ -392,6 +393,12 @@
             e.preventDefault();
             const msg = input.value.trim();
             if (msg) send(msg);
+        });
+
+        document.getElementById('chatReset')?.addEventListener('click', async () => {
+            await fetch('/api/chat/reset', { method: 'POST' });
+            messages.innerHTML = '<div class="chat-msg bot"><p>Conversation réinitialisée. 👋 Comment puis-je vous aider ?</p></div><div class="chat-suggestions" id="chatSuggestions"></div>';
+            loadSuggestions();
         });
     })();
     </script>
