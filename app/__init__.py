@@ -64,10 +64,12 @@ def create_app():
     from app.routes.push import push_bp
     from app.routes.email_notif import email_bp
     from app.routes.live import live_bp
+    from app.routes.chat import chat_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(push_bp)
     app.register_blueprint(email_bp)
     app.register_blueprint(live_bp)
+    app.register_blueprint(chat_bp)
 
     # Scheduler APScheduler (push + email)
     try:

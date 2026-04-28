@@ -75,6 +75,34 @@
         </div>
     </footer>
 
+    <!-- ── Chatbot ──────────────────────────────────────────────────── -->
+    <div id="chatWidget">
+      <button id="chatToggle" class="chat-toggle" aria-label="Assistant JOJ">
+        <span class="chat-toggle-icon">💬</span>
+        <span class="chat-toggle-close hidden">✕</span>
+      </button>
+      <div id="chatPanel" class="chat-panel hidden">
+        <div class="chat-header">
+          <span class="chat-header-icon">🏅</span>
+          <div>
+            <p class="chat-header-title">Assistant JOJ Dakar 2026</p>
+            <p class="chat-header-sub">Répond à vos questions pratiques</p>
+          </div>
+        </div>
+        <div id="chatMessages" class="chat-messages">
+          <div class="chat-msg bot">
+            <p>Bonjour ! 👋 Je suis votre assistant JOJ Dakar 2026. Comment puis-je vous aider ?</p>
+          </div>
+          <div class="chat-suggestions" id="chatSuggestions"></div>
+        </div>
+        <form id="chatForm" class="chat-form">
+          <input type="text" id="chatInput" class="chat-input"
+                 placeholder="Posez votre question…" autocomplete="off">
+          <button type="submit" class="chat-send">➤</button>
+        </form>
+      </div>
+    </div>
+
     <!-- Modal alertes email ─────────────────────────────────────────── -->
     <div id="emailModal" class="email-modal-overlay hidden">
       <div class="email-modal-box">
@@ -264,6 +292,108 @@
             alert('Erreur réseau. Veuillez réessayer.');
         }
     });
+    // ── Chatbot ────────────────────────────────────
+    (function() {
+        const toggle   = document.getElementById('chatToggle');
+        const panel    = document.getElementById('chatPanel');
+        const messages = document.getElementById('chatMessages');
+        const form     = document.getElementById('chatForm');
+        const input    = document.getElementById('chatInput');
+        const suggs    = document.getElementById('chatSuggestions');
+        const iconOpen = toggle.querySelector('.chat-toggle-icon');
+        const iconClose= toggle.querySelector('.chat-toggle-close');
+
+        function openChat() {
+            panel.classList.remove('hidden');
+            iconOpen.classList.add('hidden');
+            iconClose.classList.remove('hidden');
+            input.focus();
+            if (!suggs.children.length) loadSuggestions();
+        }
+        function closeChat() {
+            panel.classList.add('hidden');
+            iconOpen.classList.remove('hidden');
+            iconClose.classList.add('hidden');
+        }
+        toggle.addEventListener('click', () =>
+            panel.classList.contains('hidden') ? openChat() : closeChat()
+        );
+
+        function addMsg(text, who) {
+            const d = document.createElement('div');
+            d.className = 'chat-msg ' + who;
+            d.innerHTML = '<p>' + formatText(text) + '</p>';
+            messages.insertBefore(d, suggs);
+            messages.scrollTop = messages.scrollHeight;
+            return d;
+        }
+
+        function addLink(href, label) {
+            const d = document.createElement('div');
+            d.className = 'chat-msg bot chat-msg-link';
+            d.innerHTML = '<a href="' + href + '" class="chat-link-btn">' + label + ' →</a>';
+            messages.insertBefore(d, suggs);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function formatText(t) {
+            return t
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function showTyping() {
+            const d = document.createElement('div');
+            d.className = 'chat-msg bot chat-typing';
+            d.innerHTML = '<span></span><span></span><span></span>';
+            messages.insertBefore(d, suggs);
+            messages.scrollTop = messages.scrollHeight;
+            return d;
+        }
+
+        async function send(msg) {
+            addMsg(msg, 'user');
+            input.value = '';
+            suggs.innerHTML = '';
+            const typing = showTyping();
+            try {
+                const r = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: msg})
+                });
+                const d = await r.json();
+                typing.remove();
+                addMsg(d.response, 'bot');
+                if (d.link && d.link_label) addLink(d.link, d.link_label);
+            } catch(e) {
+                typing.remove();
+                addMsg("Désolé, une erreur est survenue. Réessayez.", 'bot');
+            }
+        }
+
+        async function loadSuggestions() {
+            try {
+                const r = await fetch('/api/chat/suggestions');
+                const list = await r.json();
+                suggs.innerHTML = '';
+                list.slice(0, 4).forEach(q => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'chat-sugg-btn';
+                    b.textContent = q;
+                    b.addEventListener('click', () => send(q));
+                    suggs.appendChild(b);
+                });
+            } catch(e) {}
+        }
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const msg = input.value.trim();
+            if (msg) send(msg);
+        });
+    })();
     </script>
 </body>
 </html>
